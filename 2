@@ -1,0 +1,59 @@
+#include<iostream>
+#include<pthread.h>
+#include<semaphore.h>
+using namespace std ;
+sem_t sem1 , sem2 ;
+pthread_t pth[1] ;
+
+class A{
+
+ public :
+ static void *worker1(void *arg);
+};
+class B{
+ public :
+ static void *worker2(void *arg);
+};
+class C{
+ public : 
+ static void *worker3(void *arg);
+};
+
+void *A::worker1(void *arg ){
+	while(1) {
+		cout<<"A::worker1"<<endl;
+	}
+}
+void *B::worker2(void *arg ){
+	while(1){
+		cout<<"B::worker2"<<endl;
+	}
+}
+
+void *C::worker3(void *arg ){
+	while(1){
+		cout<<"C::worker3"<<endl;
+	}
+}
+
+using namespace std ;
+
+int main()
+{
+ int status = -1 ;
+ status = pthread_create(&pth[0],NULL,A::worker1,NULL);
+ if(status != 0 )
+	cout<<"pthread create error "<<endl ;
+ status = pthread_create(&pth[1],NULL,B::worker2,NULL);
+ if(status != 0 )
+	cout<<"pthread error "<<endl;
+ status = pthread_create(&pth[2],NULL,C::worker3,NULL);	
+ if(status != 0)
+	cout<<"pthread error "<<endl;
+ 
+ pthread_join(pth[0],NULL);
+ pthread_join(pth[1],NULL);
+ pthread_join(pth[2],NULL);
+ return 0 ;
+}
+
