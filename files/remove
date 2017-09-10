@@ -1,0 +1,61 @@
+::::::::::::::
+reverse_list.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+struct Node
+{
+ int data ;
+ struct Node* next ;
+};
+
+void display(Node *head)
+{
+ if(head == NULL)
+        cout<<"List is empty"<<endl;
+ else if(head->next != NULL)
+ {
+        while(head->next != NULL) 
+         {
+                cout<<head->data<<endl;
+                head = head->next ;
+        }
+         cout<<head->data<<endl;
+ }
+ 
+}
+struct Node* reverseList(struct Node *first)
+{
+   if(first == NULL) return NULL; // list does not exist.
+
+   if(first->next == NULL) return first; // list with only one node.
+
+   struct Node* rest = reverseList(first->next); // recursive call on rest.
+
+   first->next->next = first; // make first; link to the last node in the reversed rest.
+
+   first->next = NULL; // since first is the new last, make its link NULL.
+
+   return rest; // rest now points to the head of the reversed list.
+}
+int main()
+{
+ Node *N1 = new Node ;
+ Node *N2 = new Node ;
+ Node *N3 = new Node ;
+ N1->data  = 5;
+ N1->next = N2 ;
+ cout <<"N1->next "<< N1->next <<endl;
+ N2->data = 10 ;
+ N2->next = N3 ;
+ cout <<"N2->next "<< N2->next <<endl;
+ N3->data = 15 ;
+ N3->next = NULL ;
+ cout <<"N3->next "<< N3->next <<endl;
+ display(N1);
+ cout<<"Now Reverse"<<endl;
+ struct Node *head = new Node ;
+ head = reverseList(N1);
+ display(head);
+ return 0 ;
+}

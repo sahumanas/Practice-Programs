@@ -1,0 +1,2876 @@
+   :::::::::::::
+pthread_example.cpp
+::::::::::::::
+#include<iostream>
+#include<pthread.h>
+#include <signal.h>
+using namespace std; 
+class A
+{
+ public : 
+ A()
+ {
+        cout<<"A ctor"<<endl;
+ }
+ ~A()
+ {
+        cout<<"A dtor"<<endl;
+ }
+ static A *getInstance()
+ {
+        cout <<"getInstance"<<endl;
+         A *aPtr = new A();
+        return aPtr ;
+ }
+ void display()
+ {
+        cout<<"in display func"<<endl;
+ }
+};
+void *worker_thread(void *arg)
+{
+  A *aPtr1= A::getInstance();
+  cout<<"Calling from thread 1 "<<endl;
+  aPtr1->display();
+  cout<<"I am in func"<<endl;
+}
+int main()
+{
+ pthread_t pth[2];
+ int status ; 
+ status = pthread_create(&pth[1],NULL,worker_thread,NULL);
+ if(status !=0)
+        cout<<"Error"<<endl;
+ pthread_join(pth[1],NULL);
+ return 0 ;
+}
+::::::::::::::
+pthread_raii.cpp
+::::::::::::::
+#include<iostream>
+#include<pthread.h>
+#include<unistd.h>
+//unistd.h
+using namespace std ;
+
+class CustomePthreadClass{
+        public :
+        CustomePthreadClass(){
+                cout<<"m in ctor"<<endl ;
+        }
+        bool startInternalThread(){
+                return (pthread_create(&m_thread, NULL,InternalFunc,this) == 0 ) ;
+        }
+        
+        void WaitTillThreadExit()
+        {
+                (void)pthread_join(m_thread,NULL);
+        }
+        void ThreadExit()
+        {
+            (void)pthread_exit(NULL);
+         }
+
+        protected :
+        virtual void InternalEntry() = 0 ;
+        private :
+        int status ;
+        pthread_t m_thread ;
+        static void* InternalFunc(void * This);//{
+//                cout<<"base class static function "<<endl ;
+//                ((CustomePthreadClass *)This )->InternalEntry();
+//                return NULL ;
+//        } 
+};
+
+void* CustomePthreadClass::InternalFunc(void * This){
+           cout<<"base class static function "<<endl ;
+           ((CustomePthreadClass *)This )->InternalEntry();
+              return NULL ;
+}
+
+
+class implement : public CustomePthreadClass{
+        int val ;
+        public :
+
+         void InternalEntry(){
+                cout<<"Running as thread "<<endl;
+                sleep(1);
+                cout<<this->val <<" printing value from thread "<<endl ;
+        }
+        int getVal(){
+                return val ;        
+        }
+        void setVal(int k ){
+                val = k ;
+        }
+
+};
+int main(){
+ CustomePthreadClass *basethread =  new implement() ; //new CustomePthreadClass();
+ implement im ;//= new implement() ;
+ im.setVal(5) ;
+ basethread = &im ;
+ basethread->startInternalThread();
+ basethread->WaitTillThreadExit();
+ basethread->ThreadExit();        
+ cout<<" "<<endl ;
+ return 0;
+}
+::::::::::::::
+quick_sort.cpp
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+void quick_sort(int arr[],int n){
+ 
+  int index = n/2 ;
+  int  
+}
+int main(){
+ int arr[] = {50,20,10,30,40,60,90,70,80,100};
+ int n = sizeof(arr)/sizeof(arr[0]) ;
+ quick_sort(arr,n);
+ return 0 ;
+}
+::::::::::::::
+reg_match.cc
+::::::::::::::
+#include<iostream>
+#include<regex>
+
+using namespace std ;
+
+int main(){
+ string a = "Myname is manas" ;
+ regex b("Manas");
+ if(regex_match(a,b))
+        cout<<"found the word "<<endl;
+ return 0 ;
+}
+::::::::::::::
+remove_dup.cpp
+::::::::::::::
+::::::::::::::
+reverse_list.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+struct Node
+{
+ int data ;
+ struct Node* next ;
+};
+
+void display(Node *head)
+{
+ if(head == NULL)
+        cout<<"List is empty"<<endl;
+ else if(head->next != NULL)
+ {
+        while(head->next != NULL) 
+         {
+                cout<<head->data<<endl;
+                head = head->next ;
+        }
+         cout<<head->data<<endl;
+ }
+ 
+}
+struct Node* reverseList(struct Node *first)
+{
+   if(first == NULL) return NULL; // list does not exist.
+
+   if(first->next == NULL) return first; // list with only one node.
+
+   struct Node* rest = reverseList(first->next); // recursive call on rest.
+
+   first->next->next = first; // make first; link to the last node in the reversed rest.
+
+   first->next = NULL; // since first is the new last, make its link NULL.
+
+   return rest; // rest now points to the head of the reversed list.
+}
+int main()
+{
+ Node *N1 = new Node ;
+ Node *N2 = new Node ;
+ Node *N3 = new Node ;
+ N1->data  = 5;
+ N1->next = N2 ;
+ cout <<"N1->next "<< N1->next <<endl;
+ N2->data = 10 ;
+ N2->next = N3 ;
+ cout <<"N2->next "<< N2->next <<endl;
+ N3->data = 15 ;
+ N3->next = NULL ;
+ cout <<"N3->next "<< N3->next <<endl;
+ display(N1);
+ cout<<"Now Reverse"<<endl;
+ struct Node *head = new Node ;
+ head = reverseList(N1);
+ display(head);
+ return 0 ;
+}::::::::::::::
+sem_alternate.cc
+::::::::::::::
+#include  <stdio.h>
+#include<vector>
+ #include  <stdlib.h>
+ #include  <iostream>
+ #include  <pthread.h>
+ #include  <semaphore.h>
+
+  sem_t sem;
+  sem_t sem2;
+  sem_t sem3;
+  using namespace std ;
+int i =0;
+int count = 1;
+vector<int> v = {1,2,3,4,5,6,7,8,9};
+void increment(int x)
+{
+    cout << "called by thread : " << x << "count is : " << count ++ << "\n";
+    cout<<v[x] ;
+    cout<<" exit"<<endl;
+}
+
+void *printAltmessage1(void *thread_value)
+{
+    for(int m=0; m < (*(int *)thread_value); m++)
+    {
+        if (sem_wait(&sem) == 0)
+        {
+            cout << " Thread printAltmessage1 is executed" <<"\n";  
+           // increment(m*1);
+            cout<<v[i++]<<endl;
+            sem_post(&sem2);
+        }
+    }
+}
+
+void *printAltmessage2(void *thread_value)
+{
+    for(int m=1; m < (*(int *)thread_value); m++)
+    {
+        if (sem_wait(&sem2) == 0)
+        {
+            cout << " Thread printAltmessage2 is executed" <<"\n";
+           // increment(m*2);
+         //   cout<<v[m*2]<<endl;  
+            cout<<v[i++]<<endl;
+            sem_post(&sem3);
+        }
+    }
+}
+
+void *printAltmessage3(void *thread_value)
+{
+    for(int m=1; m < (*(int *)thread_value); m++)
+    {
+        if (sem_wait(&sem3) == 0)
+        {
+            cout << " Thread printAltmessage3 is executed" <<"\n";
+                cout<<v[i++]<<endl;           
+// cout<<v[m*3]<<endl;           
+// increment(m*3);
+            sem_post(&sem);
+        }
+    }
+}
+
+int main()
+{
+     sem_init(&sem,0, 1);
+     sem_init(&sem2,0, 0);
+     sem_init(&sem3,0, 0);
+     pthread_t threads[2];
+     int x =3;
+     for(int i=0;i<2;i++)
+     {
+          if(i==0)
+          int rc =pthread_create(&threads[i],NULL,printAltmessage1,(void*)&x);
+          else
+          int rc =pthread_create(&threads[i],NULL,printAltmessage2,(void*)&x);
+      }
+          int rc =pthread_create(&threads[2],NULL,printAltmessage3,(void*)&x);
+      pthread_exit(NULL);
+      return 0;
+}
+::::::::::::::
+sem_example.cpp
+::::::::::::::
+#include<iostream>
+#include<string.h>
+#include<stdlib.h>
+#include<stdio.h>
+#include<cstdio>
+#include<semaphore.h>
+using namespace std ;
+
+sem_t sem;
+
+void *callback(void *param)
+{
+ cout<<"in call back function "<<endl;
+ while(1) 
+ {
+        sem_wait(&sem);
+        cout<<"Hello from da thread!\n";
+        sem_post(&sem);
+        sleep(1);
+ }
+}
+
+int main()
+{
+ sem_init(&sem,0,1);
+ pthread_t *pt ;
+ pt = (pthread_t *)malloc(sizeof(pt));
+ cout<<"thread started "<<endl; 
+ int status = pthread_create(pt,NULL,callback,NULL);
+ 
+ int get ;
+ cin>>get;
+ 
+ sem_wait(&sem);
+ cout<<"sem locked "<<endl;
+
+ cin.get();
+ 
+ sem_post(&sem);
+
+ cin.get();
+
+ return 0 ;
+}
+::::::::::::::
+sem_open_practice.cc
+::::::::::::::
+#include <stdio.h>          /* printf()                 */
+#include <stdlib.h>         /* exit(), malloc(), free() */
+#include <sys/types.h>      /* key_t, sem_t, pid_t      */
+#include <sys/shm.h>        /* shmat(), IPC_RMID        */
+#include <errno.h>          /* errno, ECHILD            */
+#include <semaphore.h>      /* sem_open(), sem_destroy(), sem_wait().. */
+#include <fcntl.h>          /* O_CREAT, O_EXEC          */
+#include <sys/wait.h>        //wait pid
+#include <unistd.h>        //fork
+
+int main (int argc, char **argv){
+    int i;                        /*      loop variables          */
+    key_t shmkey;                 /*      shared memory key       */
+    int shmid;                    /*      shared memory id        */
+    sem_t *sem;                   /*      synch semaphore         *//*shared */
+    pid_t pid;                    /*      fork pid                */
+    int *p;                       /*      shared variable         *//*shared */
+    unsigned int n;               /*      fork count              */
+    unsigned int value;           /*      semaphore value         */
+
+    /* initialize a shared variable in shared memory */
+    shmkey = ftok ("/dev/null", 5);       /* valid directory name and a number */
+    printf ("shmkey for p = %d\n", shmkey);
+    shmid = shmget (shmkey, sizeof (int), 0644 | IPC_CREAT);
+    if (shmid < 0){                           /* shared memory error check */
+        perror ("shmget\n");
+        exit (1);
+    }
+
+    p = (int *) shmat (shmid, NULL, 0);   /* attach p to shared memory */
+    *p = 0;
+    printf ("p=%d is allocated in shared memory.\n\n", *p);
+
+    /********************************************************/
+
+    printf ("How many children do you want to fork?\n");
+    printf ("Fork count: ");
+    scanf ("%u", &n);
+
+    printf ("What do you want the semaphore value to be?\n");
+    printf ("Semaphore value: ");
+    scanf ("%u", &value);
+
+    /* initialize semaphores for shared processes */
+    sem = sem_open ("pSem", O_CREAT | O_EXCL, 0644, value); 
+    /* name of semaphore is "pSem", semaphore is reached using this name */
+
+    printf ("semaphores initialized.\n\n");
+
+
+    /* fork child processes */
+    for (i = 0; i < n; i++){
+        pid = fork();
+        if (pid < 0) {
+        /* check for error      */
+            sem_unlink ("pSem");   
+            sem_close(sem);  
+            /* unlink prevents the semaphore existing forever */
+            /* if a crash occurs during the execution         */
+            printf ("Fork error.\n");
+        }
+        else if (pid == 0)
+            break;                  /* child processes */
+    }
+
+
+    /******************************************************/
+    /******************   PARENT PROCESS   ****************/
+    /******************************************************/
+    if (pid != 0){
+        /* wait for all children to exit */
+        while (pid = waitpid (-1, NULL, 0)){
+            if (errno == ECHILD)
+                break;
+        }
+
+        printf ("\nParent: All children have exited.\n");
+
+        /* shared memory detach */
+        shmdt (p);
+        shmctl (shmid, IPC_RMID, 0);
+
+        /* cleanup semaphores */
+        sem_unlink ("pSem");   
+        sem_close(sem);  
+        /* unlink prevents the semaphore existing forever */
+        /* if a crash occurs during the execution         */
+        exit (0);
+    }
+
+    /******************************************************/
+    /******************   CHILD PROCESS   *****************/
+    /******************************************************/
+    else{
+        sem_wait (sem);           /* P operation */
+        printf ("  Child(%d) is in critical section.\n", i);
+        sleep (1);
+        *p += i % 3;              /* increment *p by 0, 1 or 2 based on i */
+        printf ("  Child(%d) new value of *p=%d.\n", i, *p);
+        sem_post (sem);           /* V operation */
+        exit (0);
+    }
+}
+::::::::::::::
+sem_pract.c
+::::::::::::::
+#include<stdio.h>
+#include<semaphore.h>
+#include<unistd.h>
+#include<stdlib.h>
+#include<errno.h>
+#include<errno.h>
+#include<sys/fcntl.h>
+static void parent(){
+        printf("parent\n");
+        sem_t * sem_id ;
+        sem_id = sem_open("mysem",O_CREAT,0600,0);
+        if(sem_id == SEM_FAILED){
+                perror("parent sem_open");
+                return ;
+        }
+        printf("going to wait ");
+        sem_wait(sem_id);
+        printf("waiting.....");
+        exit(1);
+}
+
+static void child(){
+        printf("child\n");
+         sem_t * sem_id ;
+        sem_id = sem_open("mysem",O_CREAT,0600,0);
+        if(sem_id == SEM_FAILED){
+                perror("child sem_open");
+                return ;
+        }
+        printf("going to post ");
+        sem_post(sem_id);
+        printf("posting to parent...");
+}
+int main(){
+ pid_t pid ;
+ pid = fork();
+ if(pid < 0 ){
+         perror("fork error");
+        exit(EXIT_FAILURE);
+ }
+ printf("%u\n",pid);
+ if(!pid){
+        printf("child -- %u\n",pid);
+        child();
+ }
+ else{
+        printf("parent -- %u\n",pid);
+         parent();
+ }
+ return 0 ;
+}
+::::::::::::::
+shared_ptr_pract.cc
+::::::::::::::
+#include<iostream>
+#include<memory>
+
+using namespace std ;
+
+class A{
+ int data ;
+ public :
+ A(){
+         cout<<"A::ctor"<<endl;
+ }
+ virtual ~A(){
+         cout<<"A::dtor"<<endl;
+ }
+ void setData(int val){
+         cout<<"A::setData"<<endl;
+        data = val ;
+ }
+ virtual void print(){
+         cout<<"A::print()"<<endl;
+ }
+};
+
+class B: public A{
+ int bdata ;
+ public :
+ B(){
+       cout<<"B::ctor"<<endl;
+ }
+ ~B(){
+       cout<<"B::dtor"<<endl;
+ }
+ void setData(int val){
+       cout<<"B::setData"<<endl;
+       bdata = val ;
+ }
+ void print(){
+        cout<<"B::print()"<<endl;
+ }
+};
+
+class C: public A{
+ int cdata ;
+ public :
+ C(){
+      cout<<"C::ctor"<<endl;
+ }
+ ~C(){
+      cout<<"C::dtor"<<endl;
+  }
+ void setData(int val){
+      cout<<"C::setData"<<endl;
+      cdata = val ;
+ }
+ void print(){
+      cout<<"C::print()"<<endl;
+ }
+};
+
+int main(){
+ shared_ptr<A> p = make_shared<A>();
+/* cout<<"p count--only a "<<p.use_count()<<endl;
+ p = make_shared<B>();
+ p->print();
+ cout<<"p count--a and b "<<p.use_count()<<endl;
+ p = make_shared<C>();
+ cout<<"p count--a n b n c "<<p.use_count()<<endl;
+
+ p = make_shared<A>();
+*/
+ shared_ptr<A> p(p);// = make_shared<p>();
+// cout<<"p1 count--a n b n c n a "<<p1.use_count()<<endl;
+ cout<<"p count--a n b n c n a "<<p.use_count()<<endl;
+ return 0 ;
+}
+::::::::::::::
+shem_client.cpp
+::::::::::::::
+
+//sem client
+
+//
+// * shm-client - client program to demonstrate shared memory.
+// */
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+#include<stdlib.h>
+
+#define SHMSZ 30
+
+main()
+{
+    int shmid;
+    key_t key;
+    char *shm, *s;
+
+    /*
+     * We need to get the segment named
+     * "5678", created by the server.
+     */
+    key = 1234;
+
+    /*
+     * Locate the segment.
+     */
+    if ((shmid = shmget(key, SHMSZ, 0666)) < 0) {
+        perror("shmget");
+        exit(1);
+    }
+
+    /*
+     * Now we attach the segment to our data space.
+     */
+    if ((shm = (char *)shmat(shmid, NULL, 0)) == (char *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+
+    /*
+     * Now read what the server put in the memory.
+     */
+    for (s = shm; *s != '\0'; s++)
+        putchar(*s);
+    putchar('\n');
+
+    /*
+     * Finally, change the first character of the 
+     * segment to '*', indicating we have read 
+     * the segment.
+     */
+    *shm = '*';
+
+    exit(0);
+}
+
+::::::::::::::
+shem_server.cpp
+::::::::::::::
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <stdio.h>
+#include<stdlib.h>
+#include <unistd.h>
+#define SHMSZ 30
+
+main()
+{
+    char c;
+    int shmid;
+    key_t key;
+    char *shm, *s;
+
+    /*
+     * We'll name our shared memory segment
+     * "5678".
+     */
+    key = 1234;
+
+    /*
+     * Create the segment.
+     */
+    if ((shmid = shmget(key, SHMSZ, IPC_CREAT | 0666)) < 0) {
+        perror("shmget");
+        exit(1);
+    }
+
+    /*
+     * Now we attach the segment to our data space.
+     */
+    if ((shm = (char *)shmat(shmid, NULL, 0)) == (char *) -1) {
+        perror("shmat");
+        exit(1);
+    }
+
+    /*
+     * Now put some things into the memory for the
+     * other process to read.
+     */
+    s = shm;
+
+    for (c = 'a'; c <= 'z'; c++)
+        *s++ = c;
+    *s = '\0';
+
+    /*
+     * Finally, we wait until the other process 
+     * changes the first character of our memory
+     * to '*', indicating that it has read what 
+     * we put there.
+     */
+    while (*shm != '*')
+        sleep(1);
+
+    exit(0);
+}::::::::::::::
+single_ton.cc
+::::::::::::::
+#include<iostream>
+using namespace std ;
+class singlton{
+        public :
+        static singlton* ptr ;
+        public :
+        static singlton& getInstance(){
+                if(ptr != NULL){
+                        ptr = new singlton();
+                }
+                return ptr ;
+        }
+        void display(){
+                cout<<__func__ <<endl ;
+        }
+}
+singlton* singlton::ptr = NULL ;
+int main(){
+ singlton* PTR = getInstance() ;
+ //PTR->display();
+ return 0 ;
+}
+::::::::::::::
+singleton_pattern.cpp
+::::::::::::::
+#include<iostream>
+#include <pthread.h>
+using namespace std ;
+
+int i = 0 ;
+class logger{
+ public :
+ logger(){
+        cout<<"m in ctor "<<endl;
+ }
+ logger(int a ){
+        cout<<"m in param ctor "<<endl;
+ }
+
+ logger(const logger& obj){
+         cout<<"copy ctor "<<endl;
+ }
+ ~logger(){
+        cout<<"default dtor"<<endl;
+ }
+ 
+ static logger* getInstance(){
+         if(loggerObj == NULL){
+                cout<<"Returning new object "<<endl;
+                loggerObj = new logger() ;
+        }
+        return loggerObj ;
+        
+ }
+ static logger* loggerObj ;
+ void display(){
+         cout<<"just print"<<endl;
+ }
+};
+
+logger* logger::loggerObj = NULL ;
+
+void* callback(void *arg ){
+// int i = 50;
+ while(i < 50){
+ cout<<"callback :: thread  1  "<<endl;
+ logger::getInstance()->display() ;
+ i++;
+ }
+}
+
+void* callback2(void *arg){
+// int i = 0 ;
+ while(i < 100)
+ {
+         cout<<"callback :: thread  2  "<<endl;
+         logger::getInstance()->display() ;
+         i++;
+ }
+}
+
+int main(){
+ 
+ pthread_t pth[2] ;
+ int status = pthread_create(&pth[0],NULL,callback,NULL);
+ if(status != 0 )
+        cout<<"There is error in creating the thread "<<endl;
+
+ status = pthread_create(&pth[1],NULL,callback2,NULL);
+ if(status != 0 )
+        cout<<"ptherad_create error "<<endl;
+
+ pthread_join(pth[0],NULL);
+ pthread_join(pth[1],NULL);
+ return 0 ;
+}
+::::::::::::::
+spin_lock.cc
+::::::::::::::
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <errno.h>
+#include <sys/time.h>
+
+#include <list>
+
+#define LOOPS 10000000
+
+using namespace std;
+
+list<int> the_list;
+
+#ifdef USE_SPINLOCK
+pthread_spinlock_t spinlock;
+#else
+pthread_mutex_t mutex;
+#endif
+
+pid_t gettid() { return syscall( __NR_gettid ); }
+
+void *consumer(void *ptr)
+{
+    int i;
+
+    printf("Consumer TID %lu\n", (unsigned long)gettid());
+
+    while (1)
+    {
+#ifdef USE_SPINLOCK
+        pthread_spin_lock(&spinlock);
+#else
+        pthread_mutex_lock(&mutex);
+#endif
+
+        if (the_list.empty())
+        {
+#ifdef USE_SPINLOCK
+            pthread_spin_unlock(&spinlock);
+#else
+            pthread_mutex_unlock(&mutex);
+#endif
+            break;
+        }
+
+        i = the_list.front();
+        the_list.pop_front();
+
+#ifdef USE_SPINLOCK
+        pthread_spin_unlock(&spinlock);
+#else
+        pthread_mutex_unlock(&mutex);
+#endif
+    }
+
+    return NULL;
+}
+
+int main()
+{
+    int i;
+    pthread_t thr1, thr2,thr3 ;
+    struct timeval tv1, tv2;
+
+#ifdef USE_SPINLOCK
+    pthread_spin_init(&spinlock, 0);
+#else
+    pthread_mutex_init(&mutex, NULL);
+#endif
+
+    // Creating the list content...
+    for (i = 0; i < LOOPS; i++)
+        the_list.push_back(i);
+
+    // Measuring time before starting the threads...
+    gettimeofday(&tv1, NULL);
+
+    pthread_create(&thr1, NULL, consumer, NULL);
+    pthread_create(&thr2, NULL, consumer, NULL);
+    pthread_create(&thr3, NULL, consumer, NULL);
+    pthread_join(thr1, NULL);
+    pthread_join(thr2, NULL);
+    pthread_join(thr3, NULL);
+
+    // Measuring time after threads finished...
+    gettimeofday(&tv2, NULL);
+
+    if (tv1.tv_usec > tv2.tv_usec)
+    {
+        tv2.tv_sec--;
+        tv2.tv_usec += 1000000;
+    }
+
+    printf("Result - %ld.%ld\n", tv2.tv_sec - tv1.tv_sec,
+        tv2.tv_usec - tv1.tv_usec);
+
+#ifdef USE_SPINLOCK
+    pthread_spin_destroy(&spinlock);
+#else
+    pthread_mutex_destroy(&mutex);
+#endif
+
+    return 0;
+}
+::::::::::::::
+split_string.cpp
+::::::::::::::
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <iterator>
+using namespace std ;
+
+int main(){
+ istringstream ss("there is a space here");
+ istream_iterator<std::string> beg(ss);
+ istream_iterator<std::string> end;
+ vector<std::string> tokens(beg, end); // done!
+ 
+ for(string s : tokens){
+         cout<<s <<endl; 
+ } 
+ return 0 ;
+}
+
+::::::::::::::
+stack_op.cc
+::::::::::::::
+#include<iostream>
+#include<vector>
+
+
+using namespace std ;
+template<typename T>
+class Stack{
+        vector<T> st;
+        int capacity ;
+        public :
+        Stack(int sz = -1 ): capacity(sz){
+                        
+        }
+        void pop(){
+                if(st.size() == 0){
+                        cout<<"There is no element in stack"<<endl;
+                }
+                else { 
+                        st.erase(st.begin()+ (st.size() - 1 )) ;
+                }
+        }
+        void push(T val){
+                if(capacity < 0 ){
+                        cout<<"Can not add data to stack"<<endl;
+                }
+                else if (capacity > 0 && (st.size()  < capacity)){
+                        st.push_back(val);
+                }
+        }
+        const int getSize(){
+                return st.size() ;
+        }
+        int& getCapacity(){
+                return capacity ;
+        }
+        T& top(){
+                return st[(st.size())-1];
+        }
+
+} ;
+int main(){
+ Stack<int> S(5);
+ S.push(20); S.push(23); S.push(26);
+ S.pop();  S.pop(); cout<<S.top() <<endl ;//print 20
+ S.pop();//remove 20 
+ S.pop(); S.pop();
+ const int sz = S.getSize() ;
+ cout<<sz<<endl ;
+ return 0 ;
+}
+
+::::::::::::::
+stack_op_min.cc
+::::::::::::::
+#define __STDC_LIMIT_MACROS
+#include<iostream>
+#include <limits.h>
+#include<stdint.h>
+#include<vector>
+
+using namespace std ;
+class Stack{
+        struct node{
+                int data ;
+                int minTillnow ;
+        };
+        vector<node*> st;
+        int capacity ;
+        public :
+        Stack(int sz = -1 ): capacity(sz){
+                        
+        }
+        void pop(){
+                if(st.size() == 0){
+                        cout<<"There is no element in stack"<<endl;
+                }
+                else { 
+                        st.erase(st.begin()+ (st.size() - 1 )) ;
+                }
+        }
+        void push(int val){
+                if(capacity < 0 ){
+                        cout<<"Can not add data to stack"<<endl;
+                }
+                else if (capacity > 0 && (st.size()  < capacity)){
+                        struct node* newn = new node();
+                        newn->data = val ;
+                        newn->minTillnow = val ;  
+                        if(minStack() != INT_MAX && val >  minStack())
+                                newn->minTillnow = minStack();
+                        st.push_back(newn);
+                }
+        }
+        const int getSize(){
+                return st.size() ;
+        }
+        int& getCapacity(){
+                return capacity ;
+        }
+        int& top(){
+                return (st[(st.size())-1])->data;
+        }
+        int minStack(){
+                if(st.size() == 0 ){
+                        return INT_MAX ;
+                }
+                else{
+                        return (st[(st.size())-1])->minTillnow;
+                }
+        }
+
+} ;
+int main(){
+ Stack S(10);
+
+ S.push(90); 
+ S.push(53);
+ S.push(100); 
+ S.push(653);
+ S.push(3);
+ S.push(1);
+ S.push(500);
+ cout<<S.top() <<endl ;
+ cout<<S.minStack() <<endl ;
+ return 0 ;
+}
+
+::::::::::::::
+string_c.c
+::::::::::::::
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+
+int main()
+{
+ char *ptr = "manas" ;
+ char arr_ch[] = "char_array" ; 
+ printf("%s \n",ptr);
+ printf("%s \n",arr_ch);
+ printf("======================\n");
+ printf("char pointer len %lu \n",strlen(ptr));
+ printf("======================\n");
+ printf("char arr_ch len %lu \n",strlen(arr_ch));
+ printf("======================\n");
+ printf("char arr_ch \n");
+ printf("char arr_ch memory %p \n",&arr_ch[0]);
+ printf("char arr_ch memory %p \n",&arr_ch[6]);
+ printf("======================\n");
+ printf("char ptr \n");
+ printf("char ptr memory %p \n",ptr);
+ printf("char ptr memory %p \n",++ptr);
+ printf("char at ptr %c \n",*ptr);
+ printf("======================\n");
+ printf("copy\n");
+ char copystr[25] ;
+ memcpy(copystr, arr_ch , sizeof(arr_ch));
+ printf("printing copied char array %s \n",copystr);
+ 
+ char *from = "from str" ;
+ char *to = (char * )malloc(strlen(from) + 1  );
+ to = from ;
+ printf("printing copied char ptr %s \n",to);
+ printf("\n\n");
+ printf("======================\n");
+ printf("Having pointer array \n");
+ char arr_ch_arr[3][20] = {"char_array1 " ,"char_array2","char_array3"};
+ printf("======================\n");
+ printf("memory allocate char 2D array \n");
+ 
+ return  0; 
+}
+::::::::::::::
+strtod.cpp
+::::::::::::::
+
+/* strtod example */
+#include <stdio.h>      /* printf, NULL */
+#include <stdlib.h>     /* strtod */
+
+int main ()
+{
+  char szOrbits[] = "365.24 29.53";
+  char* pEnd;
+  double d1, d2;
+  d1 = strtod (szOrbits, &pEnd);
+  d2 = strtod (pEnd, NULL);
+  printf ("The moon completes %f orbits per Earth year.\n", d1/d2);
+  return 0;
+}
+
+::::::::::::::
+supress.c
+::::::::::::::
+#include <stdio.h>
+int T;
+  
+int main()
+{
+    struct T { double x; };  // In C++, this T hides the global variable T, 
+                            // but not in C
+    printf("%d", sizeof(T));
+    return 0;
+}
+::::::::::::::
+sync_thread.c
+::::::::::::::
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+#include<unistd.h>
+sem_t st1 ;
+sem_t st2 ;
+
+const int pshared = 0;
+const int value = 1;
+int ret ;
+//ret = sem_init(&st1, pshared, value); 
+//ret = sem_init(&st2, pshared, value);
+
+int global = 0 ; 
+void *callback_1(void *arg){
+//        printf("begin thread 1 \n");
+                //global++ ;
+        //        printf("begin thread 1 wait st1 \n");
+        while(1){        
+        sem_wait(&st1);
+                printf("Hi");
+                printf("\n");
+        //        if(global == 5)
+        //                break ;
+        //        printf("begin thread 1 post st2 \n");
+                sem_post(&st2);
+                usleep(1000000);
+        }
+}
+void *callback_2(void *arg){
+//        printf("begin thread 2 \n");
+        while(1){
+        //        global++ ;
+//                printf("begin thread 2 wait st2 \n");
+                sem_wait(&st2);
+                printf("Hello");
+                printf("\n");
+        //        if(global == 5)
+        //                       break ;        
+//                printf("begin thread 2 post st1 \n");
+                sem_post(&st1);
+                usleep(1000000);
+        }
+}
+
+
+int main(){
+ sem_init(&st1, 0, 1);
+ sem_init(&st2, 0, 1);
+ pthread_t pth[3];
+
+ if(pthread_create(&pth[0],NULL,callback_1,NULL) != 0 )
+         perror("problem in spawn thread ");
+
+ if(pthread_create(&pth[1],NULL,callback_2,NULL) != 0 )
+        perror("problem in spawn thread ");
+
+ pthread_join(pth[0],NULL);
+ pthread_join(pth[1],NULL);
+ 
+ return 0 ;
+}
+::::::::::::::
+templte_spl.cc
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+template<class T >
+void display(T a )
+{
+        cout<<"all template "<<endl ;
+        cout<< a<<endl ;
+}
+
+template<>
+void display(int a )
+{
+        cout<<"Specialised template "<<endl;
+        cout<< a <<endl;
+}
+int main(){
+ display(6);
+ display("ABC");
+ return 0 ;
+}
+::::::::::::::
+test.cpp
+::::::::::::::
+#include <map>
+#include <set>
+#include <list>
+#include <cmath>
+#include <ctime>
+#include <deque>
+#include <queue>
+#include <stack>
+#include <string>
+#include <bitset>
+#include <cstdio>
+#include <limits>
+#include <vector>
+#include <climits>
+#include <cstring>
+#include <cstdlib>
+#include <fstream>
+#include <numeric>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
+
+using namespace std;
+
+bool ransom_note(vector<string> magazine, vector<string> ransom) 
+{
+    bool flag = true ;
+    sort( magazine.begin(), magazine.end() );
+    sort( ransom.begin(), ransom.end() );
+    magazine.erase( unique( magazine.begin(), magazine.end() ), magazine.end() );
+
+//    if(ransom.size() > magazine.size())
+//        return false ;
+    if(ransom.size() <= magazine.size())
+    {
+        for(int i = 0 ; i < ( ransom.size() - 1 ) ; ++i)
+        {
+            if(find(magazine.begin(),magazine.end(), ransom[i]) == magazine.end())
+            {
+                flag =  false ;
+            }
+        }
+        
+        if(flag == false )
+            return false ; 
+        else
+            return true ;               
+    }
+    else
+    {
+        return false ;      
+    }
+}
+
+int main(){
+    int m;
+    int n;
+    cin >> m >> n;
+    vector<string> magazine(m);
+    for(int magazine_i = 0;magazine_i < m;magazine_i++){
+       cin >> magazine[magazine_i];
+    }
+    vector<string> ransom(n);
+    for(int ransom_i = 0;ransom_i < n;ransom_i++){
+       cin >> ransom[ransom_i];
+    }
+    if(ransom_note(magazine, ransom))
+        cout << "Yes\n";
+    else
+        cout << "No\n";
+    return 0;
+}
+::::::::::::::
+test_return.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+int main(){
+ int i = 1 ;
+ if(!i){
+ cout<<"!i";
+ }
+ else{
+        cout<<"else"<<endl;
+ }
+ cout<<"end"<<endl ;
+ return 0 ;
+}
+::::::::::::::
+test_set.cpp
+::::::::::::::
+#include <iostream>
+#include <unordered_set>
+using namespace std ;
+
+int main(){
+ unordered_set<char> s ;
+ char c = 'c';
+ s['c']++ ;
+
+ unordered_set<char>::iterator it = s.begin();
+ if(it != s.end())
+        cout<<*it<<endl ;
+
+ return 0 ;
+}
+::::::::::::::
+this_virtual2.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+class Base {
+    public:
+      void init();
+      // ...
+      virtual void foo(int n) const{ // often pure virtual
+      cout<<"Base foo with param"<<endl ;
+      }
+      virtual double bar() const{    // often pure virtual
+      cout<<"bar in Base "<<endl ;
+      }
+      void display(){
+      cout<<"base print---"<<endl;
+      }
+      // if you don't want outsiders calling these, make them protected
+    };
+    void Base::init()
+    {
+      // ...
+      foo(42);  // Warning: does NOT dynamically bind to the derived class
+      bar();    // (ditto)
+      // ...
+    }
+    class Derived : public Base {
+    public:
+      // ...
+      virtual void foo(int n) const{
+      cout<<"foo in Derived "<<endl ;
+      }
+      virtual double bar() const{
+      cout<<"bar in Derived "<<endl ;
+      }
+      virtual void display(){
+      cout<<"derived print---"<<endl;
+      }
+
+};
+
+int main(){
+// Base b;
+// b.init();
+ Base *bptr = new Derived();
+ bptr->init(); 
+ return 0 ;
+}
+::::::::::::::
+this_virtual3.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+class A {
+
+    public:
+    void f() { cout<<"a.f()"<<endl;};   
+};
+
+class B: public A {
+    public:
+    void f() { cout<<"b.f()"<<endl;};   
+};
+
+
+int main(){
+
+//    B *b = new B();
+    A *a = new B();
+    a->f(); 
+    return 0;
+}
+::::::::::::::
+this_virtual4.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+class Base {
+ public:
+ void f(double x){
+         cout<<"Base f "<< x <<endl;
+ }  // Doesn't matter whether or not this is virtual
+};
+class Derived : public Base {
+ public:
+ void f(char c){
+        cout<<"Derived f "<< c <<endl;
+ }  // Doesn't matter whether or not this is virtual
+};
+int main()
+{
+  Derived* d = new Derived();
+  Base* b = d;
+  b->f(65.3);  // Okay: passes 65.3 to f(double x)
+  d->f(65.3);  // Bizarre: converts 65.3 to a char ('A' if ASCII) and passes it to f(char c); does NOT call f(double x)!!
+  delete d;
+  return 0;
+}
+::::::::::::::
+this_virtual.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+class Base {
+    public:
+      Base();
+      // ...
+      virtual void foo(int n) const{ // often pure virtual
+      cout<<"Base foo with param"<<endl ;
+      }
+      virtual double bar() const{    // often pure virtual
+      cout<<"bar in Base "<<endl ;
+      }
+      void display(){
+      cout<<"base print---"<<endl;
+      }
+      // if you don't want outsiders calling these, make them protected
+      virtual ~Base(){
+        cout<<"Base dtor"<<endl;
+      }
+    };
+    Base::Base()
+    {
+      // ...
+      foo(42);  // Warning: does NOT dynamically bind to the derived class
+      bar();    // (ditto)
+      // ...
+    }
+    class Derived : public Base {
+    public:
+      // ...
+      virtual void foo(int n) const{
+      cout<<"foo in Derived "<<endl ;
+      }
+      virtual double bar() const{
+      cout<<"bar in Derived "<<endl ;
+      }
+      virtual void display(){
+      cout<<"derived print---"<<endl;
+      }
+      ~Derived(){
+        cout<<"derived dtor "<<endl;
+      }
+};
+
+int main(){
+// Base b;
+ Base *bptr = new Derived();
+ bptr->display(); 
+ delete bptr ;
+ return 0 ;
+}
+::::::::::::::
+thread_bar.cpp
+::::::::::::::
+//#define _GNU_SOURCE
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <time.h>
+
+#define THREAD_COUNT 4
+
+pthread_barrier_t mybarrier;
+
+void* threadFn(void *id_ptr) {
+  int thread_id = *(int*)id_ptr;
+  int wait_sec = 1 + rand() % 5;
+  printf("thread %d: Wait for %d seconds.\n", thread_id, wait_sec);
+  sleep(wait_sec);
+  printf("thread %d: I'm ready...\n", thread_id);
+
+  pthread_barrier_wait(&mybarrier);
+
+  printf("thread %d: going!\n", thread_id);
+  return NULL;
+}
+
+
+int main() {
+  int i;
+  pthread_t ids[THREAD_COUNT];
+  int short_ids[THREAD_COUNT];
+
+  srand(time(NULL));
+  pthread_barrier_init(&mybarrier, NULL, THREAD_COUNT + 1);
+
+  for (i=0; i < THREAD_COUNT; i++) {
+    short_ids[i] = i;
+    pthread_create(&ids[i], NULL, threadFn, &short_ids[i]);
+  }
+
+  printf("main() is ready.\n");
+
+  pthread_barrier_wait(&mybarrier);
+
+  printf("main() is going!\n");
+
+  for (i=0; i < THREAD_COUNT; i++) {
+    pthread_join(ids[i], NULL);
+  }
+
+  pthread_barrier_destroy(&mybarrier);
+
+  return 0;
+}
+::::::::::::::
+ticket_seller.cpp
+::::::::::::::
+
+#include<stdio.h>
+#include<pthread.h>
+#include<semaphore.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+sem_t sem_id;
+int num_Tickets = 20;
+int NUM_THREAD = 4;
+
+void * seller_thread_0(void *null)
+{
+    while(1)
+        {
+                int ret;
+                ret = sem_wait(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+                if(num_Tickets > 0)  // to see if some other thread had not made available ticketsto 0;
+                {
+                        num_Tickets--;  // sell one ticket
+                        printf("seller thread_0 sold one ticket now ticket count is %d\n",num_Tickets);
+                }
+                else 
+                {        
+                        ret = sem_post(&sem_id);
+                        if(ret != 0)
+                                perror("semaphore waiting");
+                        break;
+                }        
+                ret = sem_post(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+        }
+        pthread_exit(NULL);
+}
+void * seller_thread_1(void *null)
+{
+        while(1)
+        {
+                int ret;
+                ret = sem_wait(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+                if(num_Tickets > 0)
+                {
+                        num_Tickets--;
+                        printf("seller thread_1 sold one ticket now ticket count is %d\n",num_Tickets);
+                }
+                else 
+                {        
+                        ret = sem_post(&sem_id);
+                        if(ret != 0)
+                                perror("semaphore waiting");
+                        break;
+                }        
+                ret = sem_post(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+        }
+        pthread_exit(NULL);
+}
+void * seller_thread_2(void *null)
+{
+        while(1)
+        {
+                int ret;
+                ret = sem_wait(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+                if(num_Tickets > 0)
+                {
+                        num_Tickets--;
+                        printf("seller thread_2 sold one ticket now ticket count is %d\n",num_Tickets);
+                }
+                else 
+                {        
+                        ret = sem_post(&sem_id);
+                        if(ret != 0)
+                                perror("semaphore waiting");
+                        break;
+                }        
+                ret = sem_post(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+        }
+        pthread_exit(NULL);
+}
+void * seller_thread_3(void *null)
+{
+        while(1)
+        {
+                int ret;
+                ret = sem_wait(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+                if(num_Tickets > 0)
+                {
+                        num_Tickets--;
+                        printf("seller thread_3 sold one ticket now ticket count is %d\n",num_Tickets);
+                }
+                else 
+                {        
+                        ret = sem_post(&sem_id);
+                        if(ret != 0)
+                                perror("semaphore waiting");
+                        break;
+                }        
+                ret = sem_post(&sem_id);
+                if(ret != 0)
+                        perror("semaphore waiting");
+        }
+        pthread_exit(NULL);
+}
+
+int main()
+{
+        int ret,i;
+        pthread_t thread_id[4];
+// Semaphore initializatoin with one so that first thread can take semaphore lock and other will block
+        ret = sem_init(&sem_id, 0 ,1);
+        if(ret != 0)
+                perror("semaphore initialization");
+// Creation of 4 threads who will sell the tickets
+        ret = pthread_create(&thread_id[0], NULL, seller_thread_0, NULL);
+        if(ret != 0)
+                perror("creation of thread");
+        ret = pthread_create(&thread_id[1], NULL, seller_thread_1, NULL);
+        if(ret != 0)
+                perror("creation of thread");
+        ret = pthread_create(&thread_id[2], NULL, seller_thread_2, NULL);
+        if(ret != 0)
+                perror("creation of thread");
+        ret = pthread_create(&thread_id[3], NULL, seller_thread_3, NULL);
+        if(ret != 0)
+                perror("creation of thread");
+// wait for join the threads
+        for(i = 0; i < NUM_THREAD; i++)
+        {
+                pthread_join(thread_id[i], NULL);
+        }
+}
+
+
+::::::::::::::
+ticket_selling_race_condition.cpp
+::::::::::::::
+
+#include<iostream>
+#include<semaphore.h>
+#include<pthread.h>
+#include <unistd.h>
+using namespace std ;
+sem_t sem_id;
+pthread_t pth[2];
+int num_tickets = 3 ;
+#define NUM_THREAD 2
+void *bookIt_1(void *null)
+{
+        cout<<"bookIt_1 :: Running for thread 1"<<endl;
+ while(1)
+ {
+        int ret ; 
+        ret = sem_wait(&sem_id);
+        if(ret != 0 )
+                cout<<"bookIt_1 :: Error:: sem_wait waiting "<<endl;
+        else
+        {
+                cout<<"bookIt_1 :: got the lock "<<endl;
+                if( num_tickets > 0)
+                {
+                        num_tickets--;
+                        cout<<"bookIt_1 ::one ticket sold "<<endl ;
+                }
+                else
+                {
+                        cout<<"bookIt_1 ::No tickets available "<<endl ;
+                        ret = sem_post(&sem_id);
+                        if(ret != 0 )
+                                cout<<"bookIt_1 :: Error:: sem_wait waiting "<<endl;
+                        break ;
+                }
+
+        }
+        ret = sem_post(&sem_id);
+        if(ret != 0 )
+                cout<<"bookIt_1 :: Error:: sem_wait waiting "<<endl;
+ }
+
+ pthread_exit(NULL);
+}
+void *bookIt_2(void *null)
+{
+        cout<<"bookIt_2 :: Running for thread 2"<<endl;
+ while(1)
+ {
+        int ret ;
+        ret = sem_wait(&sem_id);
+        if(ret != 0 )
+                cout<<"bookIt_2 :: waiting for sem"<<endl;
+        else
+        {
+                cout<<"bookIt_2 :: got the lock "<<endl;
+                if(num_tickets > 0)
+                {
+                        num_tickets-- ;
+                        cout<<"bookIt_2 :: one ticket sold "<<endl;
+                }
+                else
+                {
+                        cout<<"bookIt_2 ::No tickets available "<<endl ;
+                        ret = sem_post(&sem_id);
+                        if(ret != 0 )
+                                cout<<"bookIt_2 :: sem_wait waiting "<<endl ;
+                        break ;
+                }
+                ret = sem_post(&sem_id);
+                if(ret != 0 )
+                        cout<<"bookIt_2 :: Error:: sem_wait waiting "<<endl;
+        }
+ }
+ pthread_exit(NULL);
+}
+void *cancelIt_3(void *null)
+{
+        cout<<"bookIt_3 :: Running for thread 3"<<endl;
+ while(1)
+ {
+        int ret ;
+        ret = sem_wait(&sem_id);
+        if(ret != 0 )
+                cout<<"cancelIt_3:: waiting fro sem"<<endl;
+        else
+        {
+
+                if(num_tickets== 0 )
+                {
+                        num_tickets++ ;
+                        cout<<"one user has cancelled "<<endl;
+
+                        ret = sem_post(&sem_id);
+                        if(ret != 0 )
+                        {
+                                cout<<"cancelIt_3:: Error sem_waiting waiting "<<endl;
+                        }
+                        break ;
+                }
+                else
+                {
+                        cout<<"Tickets available "<<endl;
+                        if(ret != 0 )
+                        {
+                                cout<<"cancelIt_3:: Error sem_waiting waiting "<<endl;
+                        }
+                        break ;
+                }
+                
+
+                ret = sem_post(&sem_id);
+                if(ret != 0 )
+                {
+                        cout<<"cancelIt_3:: Error sem_waiting waiting "<<endl;
+                }
+        }
+
+ }
+ pthread_exit(NULL);
+}
+int main()
+{
+ int ret ;
+ ret = sem_init(&sem_id,0,1);
+ if(ret != 0 )
+        cout<<"Error:: sem_init "<<endl;
+
+ ret = pthread_create(&pth[0],NULL,bookIt_1,NULL);
+ if(ret != 0)
+        cout<<"Error:: pthread_create "<<endl;
+
+// ret = pthread_create(&pth[1],NULL,bookIt_2,NULL);
+// if(ret != 0)
+//        cout<<"Error:: pthread_create "<<endl;
+
+ sleep(1);
+
+ ret = pthread_create(&pth[2],NULL,cancelIt_3,NULL);
+ if(ret != 0)
+        cout<<"Error:: pthread_create "<<endl;
+
+ ret = pthread_create(&pth[1],NULL,bookIt_2,NULL);
+ if(ret != 0)
+        cout<<"Error:: pthread_create "<<endl;
+
+
+ for(int i = 0 ;  i < NUM_THREAD ; i++)
+ {
+        pthread_join(pth[i],NULL);
+ }
+
+ return 0 ;
+}
+
+::::::::::::::
+tree.cpp
+::::::::::::::
+#include<iostream>
+#include<queue>
+
+using namespace std ;
+
+struct node{
+ int data ;
+ struct node *left ;
+ struct node *right;
+ node(int d){
+        data = d ;
+        left = right = NULL ; 
+ };
+};
+
+struct node* root ; 
+struct node* insert(struct node* , int);
+void inorder(struct node*);
+
+void inorder(struct node* root){
+        if(root == NULL) return ;
+        else{
+                inorder(root->left);
+                cout<<root->data<<" ";
+                inorder(root->right);
+        }
+}
+
+struct node* insert(struct node *root , int data){
+
+ if(root == NULL) return new node(data) ;
+ if(root->data > data){
+        root->left = insert(root->left,data); 
+ }
+ else if(root->data < data){
+        root->right = insert(root->right,data);
+ }
+ return root ; 
+
+}
+
+void levelorder(struct node* root){
+        struct node* ptr ;
+        if(root == NULL) return ;
+        else{
+                std::queue<struct node*> q ;
+                q.push(root);
+                while(!q.empty()){
+                        ptr = q.front();
+                        q.pop();
+                        cout<<ptr->data <<" ";
+                        if(ptr->left != NULL)
+                                q.push(ptr->left);
+                        if(ptr->right != NULL)
+                                q.push(ptr->right);
+                }
+        }
+}
+
+void swap(struct node* swaplr){
+        if(swaplr->left)
+                cout<<"the left has 2 left leaf"<<endl;
+        if(swaplr->right)
+                cout<<"right -----"<<endl;
+}
+void levelorderlevel(struct node* root,int l){
+        struct niode* ptr ;
+        static struct node* lparent ;
+        struct node* temp ;
+        int level = 0 ; 
+        if(root == NULL) return ;
+        if(l == 0){
+                swap(lparent);
+                //cout<<"parent "<<lparent->data <<endl ;
+                //temp = lparent->left ;
+                //lparent->left = lparent->right ;
+                //lparent->right = temp ;
+                //cout<<lparent->left->data<<" "<<endl;
+                //cout<<lparent->right->data<<" "<<endl;        
+                return ; 
+        }
+        else{
+                lparent = root ;
+                levelorderlevel(root->left,l-1);
+                levelorderlevel(root->right,l-1);
+        }
+        cout<<endl ;
+}
+
+int main(){
+        struct node* begin = NULL;
+        begin = insert(begin,50);
+        insert(begin,40);
+        insert(begin,70);
+        insert(begin,25);
+        insert(begin,41);
+        insert(begin,60);
+        insert(begin,75);
+        insert(begin,20);
+        insert(begin,26);
+        inorder(begin);
+        cout<<endl ;
+        cout<<endl ; 
+        levelorder(begin);
+        cout<<endl ; 
+        cout<<endl ;
+        levelorderlevel(begin,2);
+        cout<<endl ;
+        cout<<endl ;
+        levelorder(begin);
+        cout<<endl ;
+        cout<<endl ;
+        return 0 ;        
+}
+::::::::::::::
+tree_length.cpp
+::::::::::::::
+#include<iostream>
+#include<vector>
+#include<queue>
+#include<algorithm>
+using namespace std;
+
+struct node{
+        int data ;
+        vector<node*> child ;
+        node(int val) : data(val){
+        }
+};
+
+struct node* getNode(int v){
+
+        struct node *n1 = new node(v);
+        return n1 ;
+}
+
+void print_vector(vector<node*> vct){
+        for(auto i : vct)
+                cout<<i->data ;
+}
+bool isReverseEqual(vector<node*> v1, vector<node*> v2){
+        cout<<endl ;
+        cout<<"isReverse ->child"<<endl;
+        reverse(v1.begin(),v1.end());
+        cout<<"print vect 1 "<<endl;
+        print_vector(v1);
+        cout<<endl<<"print vect 2"<<endl;
+        print_vector(v2);
+        cout<<endl ;
+        vector<node*>::iterator it1 , it2 ;
+        it1 = v1.begin() ; it2 = v2.begin() ;
+        while(it1 != v1.end() && it2 != v2.end()){
+                if((*it1)->data != (*it2)->data)
+                        return false ;
+                else{
+                        cout<<"both data same"<<endl;
+                }
+                it1++ ; it2++ ;
+        }
+        cout<<endl ;
+
+//        cout<<"return " ;
+        return true ;
+        //return v1 == v2 ;
+}
+
+bool isMirror(struct node* r1, struct node* r2)
+{
+        bool flag = false ;
+        cout<<"isMirror r1 data "<< r1->data <<" r2->data "<< r2->data<<endl ;
+        cout<<"isMirror r1 size "<< r1->child.size() <<" r2 size "<< r1->child.size()<<endl  ;
+        if(r1 == NULL && r2 == NULL){
+                cout<<"from here  == NULL && r2 == NULL true"<<endl;
+                return true ;//returning opposit
+        }
+//        if(r1 == NULL || r2 == NULL){        
+//                cout<<"from here false"<<endl ;
+//                return false;
+//        }
+        if((r1->child.size()) == (r2->child.size())&& (r1->child.size() == 0) && (r2->child.size() == 0) ){
+                cout<<"from here (r1->child.size() == 0) true" << endl ;;
+                return true ;                
+        }
+        else if(((r1->child.size()) == (r2->child.size())) && (isReverseEqual(r1->child,r2->child))){
+                
+                cout<<"after isReverseEqual"<<endl;
+                if(r1->child.size() > 0 ){
+                        cout<<"running for lower level"<<endl;
+                        vector<node*> v1 = r2->child ; 
+                        reverse(v1.begin(), v1.end());
+                        for(int i = 0 ; i < r1->child.size() ; i++){
+                                if(!isMirror(r1->child[i] , v1[i])){
+                                        flag = false ;
+                                }
+                                else{
+                                        flag = true ;
+                                }
+                        }
+                        return flag ;
+                }
+                else{
+                        cout<<"no child "<<endl ;
+                        return true ;
+                }
+                cout<<"main else f "<<endl ;
+        }
+        
+        cout<<"isMirror false"<<endl;
+        return flag ;
+                
+}
+void printLevelOrder(struct node *inputRoot){
+        if(inputRoot == NULL)
+                return ;
+        queue<node*> q ;
+        int size_queue ;
+        q.push(inputRoot);
+        
+        while(!q.empty()){
+                size_queue = q.size() ;
+                while(size_queue > 0 ){
+                        
+                        struct node *newnode = q.front() ;
+                        q.pop();
+                        cout<< newnode->data <<" " ;
+                        for(int j = 0 ; j < newnode->child.size(); j++){
+                                q.push(newnode->child[j]);
+                        }
+                        size_queue-- ;        
+                }
+                cout<< endl ; //line separate 
+        }
+}
+
+int main(){
+ node *root1 = new node(10);
+ (root1->child).push_back(getNode(2)); 
+ (root1->child).push_back(getNode(21)); 
+ (root1->child).push_back(getNode(100)); 
+ (root1->child).push_back(getNode(150)); 
+ (root1->child[1]->child).push_back(getNode(249)); 
+ (root1->child[1]->child).push_back(getNode(5)); 
+ (root1->child[1]->child).push_back(getNode(26)); 
+ (root1->child[2]->child).push_back(getNode(66)); 
+ (root1->child[2]->child).push_back(getNode(67)); 
+
+ cout<<endl ;
+ cout<<"printLevel Order root1 before "<<endl ; 
+ printLevelOrder(root1);
+
+ node *root2 = new node(10);
+ (root2->child).push_back(getNode(150));
+ (root2->child).push_back(getNode(100));
+ (root2->child).push_back(getNode(21));
+ (root2->child).push_back(getNode(2));
+ (root2->child[1]->child).push_back(getNode(67));
+ (root2->child[1]->child).push_back(getNode(66));
+ (root2->child[1]->child).push_back(getNode(26));
+ (root2->child[2]->child).push_back(getNode(5));
+ (root2->child[2]->child).push_back(getNode(249));
+
+ cout<<endl ;
+ cout<<"printLevel Order root2 before "<<endl ;
+ printLevelOrder(root2);
+
+ if(isMirror(root1,root2))
+        cout<<"YES" <<endl ;
+ else
+        cout<<"NO" <<endl ;
+ 
+ cout<<"END"<<endl;
+ return 0 ;
+}
+::::::::::::::
+tree_vertical.cpp
+::::::::::::::
+#include<iostream>
+#include<queue>
+#include<map>
+#include<vector>
+using namespace std ;
+
+struct node{
+ int data ;
+ struct node *left ;
+ struct node *right;
+ node(int d){
+        data = d ;
+        left = right = NULL ; 
+ };
+};
+
+struct node* insert(struct node* , int);
+
+struct node* insert(struct node *root , int data){
+
+ if(root == NULL) return new node(data) ;
+ if(root->data > data){
+        root->left = insert(root->left,data); 
+ }
+ else if(root->data < data){
+        root->right = insert(root->right,data);
+ }
+ return root ; 
+
+}
+
+void verticalOrder(struct node* root){
+        struct node* ptr ;
+        int hd = 0;
+        if(root == NULL) return ;
+        map<int,vector<int> > mapObj ;
+        std::queue<pair<node*,int> > q ;
+        //std::queue<struct node*> q ;
+        //q.push(root);
+        q.push(make_pair(root,hd));
+        while(!q.empty()){
+                pair<node*,int > ptr = q.front();
+                //ptr = q.front();
+                q.pop();
+                hd = ptr.second ;
+                node* n = ptr.first ;
+                mapObj[hd].push_back(n->data);
+                //cout<<ptr->data <<" ";
+                if(n->left != NULL)
+                        //q.push(ptr->left);
+                        q.push(make_pair(n->left,hd-1));
+                if(n->right != NULL)
+                        //q.push(ptr->right);
+                        q.push(make_pair(n->right,hd+1));
+                }
+
+
+        map<int,vector<int> >::iterator it = mapObj.begin() ;
+        while(it != mapObj.end()){
+                for(int i = 0 ; i < it->second.size() ; ++i ){
+                        cout<<it->second[i]<< " ";
+                }
+                it++ ;
+                cout<<endl;
+        }
+}
+
+int main(){
+        struct node* begin = NULL;
+        begin = insert(begin,50);
+        insert(begin,40);
+        insert(begin,70);
+        insert(begin,25);
+        insert(begin,41);
+        insert(begin,60);
+        insert(begin,75);
+        insert(begin,20);
+        insert(begin,26);
+        cout<<endl ;
+        cout<<endl ; 
+        verticalOrder(begin);
+        cout<<endl ; 
+        cout<<endl ;
+        return 0 ;        
+}
+::::::::::::::
+trie_datastruct.cpp
+::::::::::::::
+#include<iostream>
+#include<string.h>
+using namespace std ;
+#define CHAR_INDEX(c) int(c) - int('a')
+#define size 26 
+
+struct node{
+ struct node *ch[size];
+ bool isLeaf ;
+};
+
+struct node *getNode(){
+        cout<<__func__<<"++"<<endl ;
+        struct node *newNode = new node();
+        if(newNode){
+        int index = 0 ;
+        for(int i = index ; i < size ; i++)
+                newNode->ch[i] = '\0';//NULL ;
+        }
+        newNode->isLeaf = false ;
+
+        cout<<__func__<<"--"<<endl ;
+        return newNode ;
+}
+
+void insert(struct node **root , const char *key){
+        cout<<__func__<<"++"<<endl ;
+        struct node *crawl = *root ;
+
+        int len = strlen(key);
+//        cout<<"len -- "<<len<<endl;
+        int level = 0;
+        int index = 0 ;
+        for(int level = 0 ; level < len ; level++){
+//                cout<<__func__<<" "<<index <<endl ;
+                index = CHAR_INDEX(key[level]);//getting the char index in alphabates system
+//                cout<<__func__<<" "<<index <<" index assigned "<<endl ;
+                if(!crawl->ch[index]){
+//                        cout<<__func__<<" "<<index <<" nothing found at index "<<endl ;
+                        crawl->ch[index] = getNode();
+                }
+                crawl = crawl->ch[index] ;
+        }
+        crawl->isLeaf = true ;
+        cout<<__func__<<"--"<<endl ;
+        
+}
+
+bool search(struct node **root , const char *key){
+        cout<<__func__<<"++"<<endl;
+        struct node *rnode = *root ;
+        int len = strlen(key) ;
+        int level ;
+
+        if(len < 0 )
+                return false ;
+        else{
+                for(level = 0; level < len ; level++){
+                        int index = CHAR_INDEX(key[level]);
+                        if(!rnode->ch[index])
+                                return false ;
+                        rnode = rnode->ch[index];        
+                }
+        }
+        cout<<__func__<<"--"<<endl;
+        return (rnode != NULL && rnode->isLeaf) ;
+}
+int main()
+{
+ char keys[][25] = {"delete","new","hello"} ;
+ struct node *root = new node();
+ insert(&root,keys[1]);
+ string res = search(&root,keys[1]) ? "Found":"Not found" ;
+ cout<<res << endl ;
+ return 0 ;
+}
+::::::::::::::
+trie_node.cpp
+::::::::::::::
+#include <iostream>
+#include <string>
+#include <map>
+#include <vector>
+
+using namespace std;
+
+struct Node {
+  char ch;
+  map<char, Node*> children;
+};
+
+class Trie {
+  public:
+    Trie() { head.ch = -1; };
+    ~Trie();
+
+    void build_trie(string words[], int length);
+    void insert(string word);
+    void search(string word, bool &result);
+
+    void print_tree(map<char, Node*> tree);
+    void print();
+
+  protected:
+    Node head;
+    // Keep all newly created node in an array, for the ease of
+    // memory release.
+    vector<Node*> children;
+};
+
+Trie::~Trie() {
+  for (int i=0; i<children.size(); ++i) {
+    delete children[i];
+  }
+}
+
+void Trie::build_trie(string words[], int length) {
+  for (int i=0; i<length; ++i) {
+    insert(words[i]);
+  }
+}
+
+void Trie::insert(string word) {
+  map<char, Node*> *current_tree = &head.children;
+  map<char, Node*>::iterator it;
+
+  for (int i=0; i<word.length(); ++i) {
+    char ch = word[i];
+
+    if ((it = current_tree->find(ch)) != current_tree->end()) {
+      current_tree = &it->second->children;
+      continue;
+    }
+
+    if (it == current_tree->end()) {
+      // Display inserting position in the tree, for debug use
+      //
+      // cout << "Inserting " << ch << endl;
+      // cout << "on layer " << endl;
+      // map<char, Node*>::iterator temp = current_tree->begin();
+      // for (; temp != current_tree->end(); ++temp)
+      //   cout << temp->first << endl;
+
+      Node* new_node = new Node();
+      new_node->ch = ch;
+      (*current_tree)[ch] = new_node;
+
+      // For continuous inserting a word.
+      current_tree = &new_node->children;
+      
+      // For the ease of memory clean up.
+      children.push_back(new_node);
+    }
+  }
+}
+
+void Trie::search(string word, bool &result) {
+  map<char, Node*> current_tree = head.children;
+  map<char, Node*>::iterator it;
+
+  for (int i=0; i<word.length(); ++i) {
+    if ((it = current_tree.find(word[i])) == current_tree.end()) {
+      result = false;
+      return;
+    }
+    current_tree = it->second->children;
+  }
+
+  result = true;
+  return ;
+}
+
+void Trie::print_tree(map<char, Node*> tree) {
+  if (tree.empty()) {
+    return;
+  }
+
+  for (map<char, Node*>::iterator it=tree.begin(); it!=tree.end(); ++it) {
+    cout << it->first << endl;
+    print_tree(it->second->children);
+  }
+}
+
+void Trie::print() {
+  map<char, Node*> current_tree = head.children;
+  print_tree(current_tree);
+}
+
+
+int main(int argc, char** argv)
+{
+  string words[] = {"foo", "bar", "baz", "barz"};
+  Trie trie;
+  trie.build_trie(words, 4);
+  cout << "All nodes..." << endl;
+  trie.print();
+
+  cout << "Searching..." << endl;
+  bool in_trie = false;
+  trie.search("foo", in_trie);
+  cout << "foo " << in_trie << endl;
+
+  trie.search("fooz", in_trie);
+  cout << "fooz " << in_trie << endl;
+
+  trie.search("bar", in_trie);
+  cout << "bar " << in_trie << endl;
+
+  trie.search("baz", in_trie);
+  cout << "baz " << in_trie << endl;
+
+  trie.search("barz", in_trie);
+  cout << "barz " << in_trie << endl;;
+
+  trie.search("bbb", in_trie);
+  cout << "bbb " << in_trie << endl;;
+
+  return 0;
+}
+::::::::::::::
+two_stack_op_min.cc
+::::::::::::::
+#include<iostream>
+#include<limits.h>
+#include<vector>
+
+using namespace std ;
+class Stack{
+        struct node{
+                int data ;
+                int minTillnow ;
+        };
+        vector<node*> st;
+        int capacity ;
+        public :
+        Stack(int sz = -1 ): capacity(sz){}
+        void pop(){
+                if(st.size() == 0){
+                        cout<<"There is no element in stack"<<endl;
+                }
+                else { 
+                        st.erase(st.begin()+ (st.size() - 1 )) ;
+                }
+        }
+        void push(int val){
+                if(capacity < 0 ){
+                        cout<<"Can not add data to stack"<<endl;
+                }
+                else if (capacity > 0 && (st.size()  < capacity)){
+                        struct node* newn = new node();
+                        newn->data = val ;
+                        newn->minTillnow = val ;  
+                        if(minStack() != INT_MAX && val >  minStack())
+                                newn->minTillnow = minStack();
+                        st.push_back(newn);
+                }
+        }
+        const int getSize(){
+                return st.size() ;
+        }
+        int& getCapacity(){
+                return capacity ;
+        }
+        int& top(){
+                return (st[(st.size())-1])->data;
+        }
+        int minStack(){
+                if(st.size() == 0 ){
+                        return INT_MAX ;
+                }
+                else{
+                        return (st[(st.size())-1])->minTillnow;
+                }
+        }
+
+} ;
+int main(){
+ Stack S(10);
+
+ S.push(90); 
+ S.push(53);
+ S.push(100); 
+ S.push(653);
+ S.push(3);
+ S.push(1);
+ S.push(500);
+ cout<<S.top() <<endl ;
+ cout<<S.minStack() <<endl ;
+ return 0 ;
+}
+
+::::::::::::::
+two_thread.cpp
+::::::::::::::
+#include<iostream>
+#include<vector>
+#include<pthread.h>
+
+using namespace std;
+int global = 0 ;
+vector<int> v ;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER ;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+#define MAX 10 
+
+void *even(void *arg){
+ while(global < MAX )
+ {
+  pthread_mutex_lock(&mutex);
+  while(global % 2 != 0 )
+    pthread_cond_wait(&cond,&mutex);
+ 
+  v.push_back(global++);
+ // pthread_cond_signal(&cond);
+  pthread_mutex_unlock(&mutex);
+  pthread_cond_signal(&cond);
+ }
+ pthread_exit(0);
+}
+
+void *odd(void *arg){
+ while(global < MAX)
+ {
+  pthread_mutex_lock(&mutex);
+  while(global % 2 == 0 )
+    pthread_cond_wait(&cond,&mutex);
+ 
+  v.push_back(global++);
+ // pthread_cond_signal(&cond);
+  pthread_mutex_unlock(&mutex);
+  pthread_cond_signal(&cond);
+ }
+ pthread_exit(0);
+}
+
+int main(){
+
+ int status ;
+ pthread_t pth[2];
+ 
+ status = pthread_create(&pth[0],NULL,even,NULL);
+ if(status != 0)
+        cout<<"pthread_create error"<<endl;
+ 
+ status = pthread_create(&pth[1],NULL,odd,NULL);
+ if(status != 0)
+     cout<<"pthread_create error"<<endl;
+
+ pthread_join(pth[0],NULL); 
+ pthread_join(pth[1],NULL); 
+ 
+ cout<<"Added to the vector "<<endl;
+ for(int i : v )
+         cout<< i <<endl ;
+ return 0 ;
+}
+
+::::::::::::::
+two_thread_semaphore.cpp
+::::::::::::::
+#include<iostream>
+#include<vector>
+#include<pthread.h>
+#include<semaphore.h>
+
+using namespace std;
+int global = 0 ;
+vector<int> v ;
+sem_t sem ;
+
+#define MAX 10 
+
+void *even(void *arg){
+ while(global < MAX )
+ {
+  sem_wait(&sem);
+  while(global % 2 == 0 )
+     v.push_back(global++);
+  sem_post(&sem); 
+ }
+ pthread_exit(0);
+}
+
+void *odd(void *arg){
+ while(global < MAX)
+ {
+  sem_wait(&sem);
+  while(global % 2 != 0 )
+     v.push_back(global++);
+  sem_post(&sem);
+ }
+ pthread_exit(0);
+}
+
+int main(){
+
+ int status ;
+ pthread_t pth[2];
+ sem_init(&sem,0,2);
+ status = pthread_create(&pth[0],NULL,even,NULL);
+ if(status != 0)
+        cout<<"pthread_create error"<<endl;
+ 
+ status = pthread_create(&pth[1],NULL,odd,NULL);
+ if(status != 0)
+     cout<<"pthread_create error"<<endl;
+
+ pthread_join(pth[0],NULL); 
+ pthread_join(pth[1],NULL); 
+ sem_destroy(&sem);
+ cout<<"Added to the vector "<<endl;
+ for(int i : v )
+         cout<< i <<endl ;
+ return 0 ;
+}
+
+::::::::::::::
+unique_ptr_pract.cc
+::::::::::::::
+#include<iostream>
+#include<memory>
+
+using namespace std ;
+
+class A{
+ int i ;
+ public :
+ void print(){
+         cout<<"A::print()"<<endl ;
+ }
+ A(){
+         cout<<"A::ctor"<<endl;
+ }
+ ~A(){
+        cout<<"A::dtor"<<endl;
+ }
+};
+int main(){
+ unique_ptr<A> pt(new A);
+ pt->print();
+ cout<<"--pt get--"<<pt.get()<<endl;
+ unique_ptr<A> pt2 = move(pt);
+// pt2 = pt ;
+ cout<<"--pt2 get--"<<pt2.get()<<endl;
+ return 0 ;
+
+}
+::::::::::::::
+update_global_cond.cpp
+::::::::::::::
+#include<iostream>
+#include<pthread.h>
+using namespace std ;
+int global_var  ;
+
+pthread_mutex_t mutex ;
+
+void *worker_th0(void *param)
+{
+ void *result ; 
+ pthread_mutex_lock(&mutex);
+// extern global_var ;
+ //cout<<"in function worker_th0 "<<endl;
+  for(int i = 0 ; i < 5 ;i++)
+        global_var = global_var + i ;
+ pthread_mutex_unlock(&mutex);
+ *((int*)result) = 11; 
+ pthread_exit((void * )result);
+ //cout<<" global_var--- "<<global_var<<endl;
+}
+
+void *worker_th1(void *param)
+{
+ pthread_mutex_lock(&mutex);
+ //cout<<"in function worker_th1 "<<endl;
+ if(global_var == 5 ) 
+        cout<<"value of global_var "<<global_var<<endl;
+ else
+ {
+        cout<<"Not equal to 5 "<<endl;
+ } 
+//global_var = global_var - 1 ;
+ pthread_mutex_unlock(&mutex);
+ //cout<<" global_var--- "<<global_var<<endl;
+}
+
+int main()
+{
+ pthread_t pth[3];
+ global_var = 1 ;
+ int status ;
+ void *result = 0;
+ status = pthread_mutex_init(&mutex,NULL);
+ if(status != 0 )
+        cout<<"Error"<<endl ;
+ cout<<"start global_var--- "<<global_var<<endl;
+ status = pthread_create(&pth[0],NULL,worker_th0,NULL);
+ if(status != 0 )
+        cout<<"Error"<<endl;
+ 
+ pthread_join(pth[0],&result);
+ 
+ cout<<" After thread 1 -- global_var--- "<<global_var<<endl;// 1 + 1 
+
+ if(result == (void *)11)
+ {
+         cout<<"returned from thread 1 "<<endl;
+         status = pthread_create(&pth[1],NULL,worker_th1,NULL);
+         if(status != 0 )
+                cout<<"Error"<<endl;
+         cout<<" After thread 2 --global_var--- "<<global_var<<endl; //1 + 1 - 1 
+ }
+ pthread_mutex_destroy(&mutex);
+
+ pthread_join(pth[1],NULL);
+ cout<<"end global_var--- "<<global_var<<endl;  // 2   
+ return 0 ;
+}
+    
+::::::::::::::
+update_global.cpp
+::::::::::::::
+#include<iostream>
+#include<pthread.h>
+using namespace std ;
+int global_var  ;
+
+pthread_mutex_t mutex ;
+
+void *worker_th0(void *param)
+{
+ pthread_mutex_lock(&mutex);
+// extern global_var ;
+ //cout<<"in function worker_th0 "<<endl;
+ global_var = global_var + 1 ;
+ pthread_mutex_unlock(&mutex);
+ //cout<<" global_var--- "<<global_var<<endl;
+}
+
+void *worker_th1(void *param)
+{
+ pthread_mutex_lock(&mutex);
+ //cout<<"in function worker_th1 "<<endl; 
+ global_var = global_var - 1 ;
+ pthread_mutex_unlock(&mutex);
+ //cout<<" global_var--- "<<global_var<<endl;
+}
+
+void *worker_th2(void *param)
+{
+ pthread_mutex_lock(&mutex);
+ //cout<<"in function worker_th2 "<<endl;
+ global_var = global_var +1  ;
+ //cout<<" global_var--- "<<global_var<<endl;
+ pthread_mutex_unlock(&mutex);
+}
+
+int main()
+{
+ pthread_t pth[3];
+ global_var = 1 ;
+ int status ;
+ status = pthread_mutex_init(&mutex,NULL);
+ if(status != 0 )
+        cout<<"Error"<<endl ;
+ cout<<"start global_var--- "<<global_var<<endl;
+ status = pthread_create(&pth[0],NULL,worker_th0,NULL);
+ if(status != 0 )
+        cout<<"Error"<<endl;
+ cout<<" After thread 1 --1 + 1--- global_var--- "<<global_var<<endl;// 1 + 1 
+ 
+ status = pthread_create(&pth[1],NULL,worker_th1,NULL);
+ if(status != 0 )
+        cout<<"Error"<<endl;
+ cout<<" After thread 2 --1 + 1 - 1 global_var--- "<<global_var<<endl; //1 + 1 - 1 
+
+ status = pthread_create(&pth[2],NULL,worker_th2,NULL);
+ if(status != 0 )
+        cout<<"Error"<<endl;
+ cout<<" After thread 3 --1 + 1 - 1 + 1 global_var--- "<<global_var<<endl; // 1 + 1 - 1 + 1 
+
+ pthread_mutex_destroy(&mutex);
+
+ pthread_join(pth[0],NULL);
+ pthread_join(pth[1],NULL);
+ pthread_join(pth[2],NULL);
+ cout<<"end global_var--- "<<global_var<<endl;  // 2   
+ return 0 ;
+}
+    
+::::::::::::::
+vector_.cc
+::::::::::::::
+#include<iostream>
+#include<vector>
+
+using namespace std ;
+typedef vector<int> vct_int ;
+int main(){
+ vct_int v(5,0) ;
+ v.push_back(34);
+ v.push_back(334);
+ v.push_back(334);
+ vct_int::iterator it = v.begin();
+ while(it != v.end()){
+ cout<<*it<<" "; 
+ it++ ;
+ }
+ return  0 ;
+}
+::::::::::::::
+virtual_class.cpp
+::::::::::::::
+#include<iostream>
+using namespace std;
+
+class Final;  // The class to be made final
+
+class MakeFinal // used to make the Final class final
+{
+private:
+    MakeFinal() { cout << "MakFinal constructor" << endl; }
+friend class Final;
+};
+
+class Final : virtual MakeFinal
+{
+public:
+    Final() { cout << "Final constructor" << endl; }
+};
+
+class Derived : public Final // Compiler error
+{
+public:
+    Derived() { cout << "Derived constructor" << endl; }
+};
+
+
+int main(int argc, char *argv[])
+{
+    Final f1;
+    return 0;
+}

@@ -1,0 +1,16 @@
+::::::::::::::
+reg_match.cc
+::::::::::::::
+#include<iostream>
+#include<regex>
+
+using namespace std ;
+
+int main(){
+ string a = "Myname is manas" ;
+ regex b("Manas");
+ if(regex_match(a,b))
+        cout<<"found the word "<<endl;
+ return 0 ;
+}
+

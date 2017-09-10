@@ -1,0 +1,87 @@
+::::::::::::::
+sem_alternate.cc
+::::::::::::::
+#include  <stdio.h>
+#include<vector>
+ #include  <stdlib.h>
+ #include  <iostream>
+ #include  <pthread.h>
+ #include  <semaphore.h>
+
+  sem_t sem;
+  sem_t sem2;
+  sem_t sem3;
+  using namespace std ;
+int i =0;
+int count = 1;
+vector<int> v = {1,2,3,4,5,6,7,8,9};
+void increment(int x)
+{
+    cout << "called by thread : " << x << "count is : " << count ++ << "\n";
+    cout<<v[x] ;
+    cout<<" exit"<<endl;
+}
+
+void *printAltmessage1(void *thread_value)
+{
+    for(int m=0; m < (*(int *)thread_value); m++)
+    {
+        if (sem_wait(&sem) == 0)
+        {
+            cout << " Thread printAltmessage1 is executed" <<"\n";  
+           // increment(m*1);
+            cout<<v[i++]<<endl;
+            sem_post(&sem2);
+        }
+    }
+}
+
+void *printAltmessage2(void *thread_value)
+{
+    for(int m=1; m < (*(int *)thread_value); m++)
+    {
+        if (sem_wait(&sem2) == 0)
+        {
+            cout << " Thread printAltmessage2 is executed" <<"\n";
+           // increment(m*2);
+         //   cout<<v[m*2]<<endl;  
+            cout<<v[i++]<<endl;
+            sem_post(&sem3);
+        }
+    }
+}
+
+void *printAltmessage3(void *thread_value)
+{
+    for(int m=1; m < (*(int *)thread_value); m++)
+    {
+        if (sem_wait(&sem3) == 0)
+        {
+            cout << " Thread printAltmessage3 is executed" <<"\n";
+                cout<<v[i++]<<endl;           
+// cout<<v[m*3]<<endl;           
+// increment(m*3);
+            sem_post(&sem);
+        }
+    }
+}
+
+int main()
+{
+     sem_init(&sem,0, 1);
+     sem_init(&sem2,0, 0);
+     sem_init(&sem3,0, 0);
+     pthread_t threads[2];
+     int x =3;
+     for(int i=0;i<2;i++)
+     {
+          if(i==0)
+          int rc =pthread_create(&threads[i],NULL,printAltmessage1,(void*)&x);
+          else
+          int rc =pthread_create(&threads[i],NULL,printAltmessage2,(void*)&x);
+      }
+          int rc =pthread_create(&threads[2],NULL,printAltmessage3,(void*)&x);
+      pthread_exit(NULL);
+      return 0;
+}
+
