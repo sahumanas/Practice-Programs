@@ -6,7 +6,7 @@ char *Reversesrting(char *str){
 		return NULL;
 	else{
 		printf("\n\ninput string in Reverse string %s\n",str);	
-		printf("\n\ninput string in Reverse string size %d\n",strlen(str));	
+		printf("\n\ninput string in Reverse string size %lu\n",strlen(str));	
 		char *start = str ;
 		char *end = str ;
 		while(*end){
@@ -26,8 +26,9 @@ char *Reversesrting(char *str){
 
 }
 int main(){
-	char *str = (char*)malloc( 50 * sizeof(char) ); //"ABCD ABCH";
-	strcpy( str, "ABCD ABCH");
+//	char *str = (char*)malloc( 50 * sizeof(char) ); //malloc allocated ptr
+//	strcpy( str, "ABCD ABCH");
+	char str[50] = "ABCD ABCH";// reversing char array 
 	printf("\n\ninput string %s\n",str);
 	Reversesrting(str);
 	printf("\n\noutput string %s\n",str);
