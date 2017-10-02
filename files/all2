@@ -1,0 +1,2939 @@
+::::::::::::::
+access_specifier.cc
+::::::::::::::
+#include<iostream>
+/*
+-Learning access specifier 
+--initialisation list 
+*/
+using namespace std ;
+
+class Base{
+ int data ;
+ 
+ protected :
+ int getPro(){
+         return this->data ;
+ }
+ public :
+ Base(int v): data(v){}
+ int getData(){
+         return this->data ;
+ }
+ void setData(int val){
+         this->data = val ;
+ }
+ 
+};
+
+class Derived : public Base{
+
+ int devData;
+
+ public :
+ Derived(int d , int p) : Base(p) , devData(d) {}
+ void getValues(){
+        cout<<getPro()<<" data===base"<<endl ; 
+        cout<<devData<<" devdata===derived"<<endl ; 
+ }
+};
+
+int main(){
+ Base b(15) ;
+ b.setData(5);
+ cout<<b.getData()<<endl;
+ Derived d(4,89);
+ cout<<d.getData()<<endl;
+ d.getValues() ; 
+ cout<<endl;
+ return 0;
+}
+::::::::::::::
+all_files
+::::::::::::::
+::::::::::::::
+auto_ptr_pract.cc
+::::::::::::::
+#include<iostream>
+#include<memory>
+
+using namespace std ;
+
+class A{
+ public :
+ void print(){
+         cout<<"A::print()"<<endl;
+ }
+ A(){
+         cout<<"A::ctor"<<endl;
+ }
+ ~A(){
+         cout<<"A::dtor"<<endl;
+ }
+};
+
+int main(){
+ auto_ptr<A> ptr(new A);
+ ptr->print();
+
+ cout<<"----ptr--"<<ptr.get()<<endl;
+ auto_ptr<A> ptr1(ptr);
+ cout<<"----ptr1--"<<ptr1.get()<<endl;
+ cout<<"----ptr--"<<ptr.get()<<endl;
+ auto_ptr<A> ptr2 = ptr1;
+ cout<<"----ptr2--"<<ptr2.get()<<endl;
+ cout<<"----ptr1--"<<ptr1.get()<<endl;
+ cout<<"----ptr--"<<ptr.get()<<endl;
+ A *ptr23 = ptr2.release(); 
+ ptr23->print();
+ cout<<"----ptr2--"<<ptr2.get()<<endl;
+ return 0 ;
+}
+::::::::::::::
+binary_conse.cpp
+::::::::::::::
+#include <vector>
+#include <cstring>
+#include <numeric>
+#include <iostream>
+#include <algorithm>
+//#include <unordered_map>
+
+using namespace std;
+
+
+int main(){
+    int n,rem,flag = 0 ;
+    vector<int> digit ;
+    cin >> n;
+    while(n>= 1 ){
+        rem = n % 2 ;
+        n = n/2 ;
+        digit.push_back(rem);
+    }
+
+    for (std::vector<int>::const_iterator i = digit.begin() ; i != digit.end(); i++)
+        cout<<*i ;
+
+    cout<<endl ;
+
+    digit.erase(remove(digit.begin(),digit.end(),0),digit.end());
+
+    for (std::vector<int>::const_iterator i = digit.begin() ; i != digit.end(); i++)
+        cout<<*i ;
+
+    cout<<"Printed vector "<<endl;
+    for (std::vector<int>::const_iterator i = digit.begin() ; i != digit.end(); i++)
+    {
+        if(*(i + 1) == 1)
+        {
+        cout<<"next item available "<<endl;
+                if((*i  == 1) && (* (i + 1) == 1) ){
+                            cout<<flag ;
+                        flag = flag + 1  ;
+                }
+        }     
+    }
+    cout<<"For ends"<<endl;
+    cout<<endl;
+    //flag++ ;
+    cout<<flag;    
+    return 0;
+}
+
+::::::::::::::
+boost_thread.cpp
+::::::::::::::
+#include <iostream> 
+#include <memory>
+#include <boost/thread.hpp>
+#include <boost/date_time.hpp>
+
+boost::shared_mutex g_mutex;
+
+using namespace std;
+
+void reader(string id)
+{
+    cout << id << ": running" << endl;
+
+    boost::shared_lock<boost::shared_mutex> lock(g_mutex);
+    if (!lock.owns_lock())
+        cout << id << ": Writer has the lock" << endl;
+    else
+        cout << id << ": Got the lock" << endl;
+
+    // pretend doing something
+    boost::this_thread::sleep(boost::posix_time::seconds(3));
+
+    cout << id << ": finished" << endl;
+}
+
+void writer(string id)
+{
+    cout << id << ": running" << endl;
+
+    boost::upgrade_lock<boost::shared_mutex> lock(g_mutex);
+    boost::upgrade_to_unique_lock<boost::shared_mutex>  unique_lock(lock);
+
+    cout << id << ": Got the lock" << endl;
+
+    // pretend doing something
+    boost::this_thread::sleep(boost::posix_time::seconds(3));
+
+    cout << id << ": finished" << endl;
+    boost::this_thread::sleep(boost::posix_time::seconds(1));
+}
+
+int main(int argc, char* argv[])
+{
+    const int writerthreadcount = 2;
+    const int readerthreadcount = 2;
+
+    vector<shared_ptr<boost::thread> > writerthread;
+    vector<shared_ptr<boost::thread> > readerthread;
+
+    for(int i=0; i<writerthreadcount; i++){
+        ostringstream id;  id << "writer" << i+1;
+        writerthread.push_back(new boost::thread(writer, id.str()));
+    }
+    for(int i=0; i<readerthreadcount; i++){
+        ostringstream id;  id << "reader" << i+1;
+        readerthread.push_back(new boost::thread(reader, id.str()));
+    }
+
+//    boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+    cout << "main: waiting for thread" << endl;
+
+    for(int i=0; i<writerthreadcount; i++){         writerthread[i]->join(); delete writerthread[i];
+    }
+    for(int i=0; i<readerthreadcount; i++){         readerthread[i]->join(); delete readerthread[i];
+    }
+
+    cout << "main: done" << endl;
+
+    return 0;
+}
+::::::::::::::
+class_test.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+class X
+{
+ public :
+ void display()
+ {
+        cout<<__TIME__ <<" "<<__FILE__<<" "<<__LINE__<<endl;
+ }
+};
+int main()
+{
+ X x ;
+ x.display();
+ return 0 ;
+}
+::::::::::::::
+command_pattern.cpp
+::::::::::::::
+#include<iostream>
+#include<string.h>
+#include<vector>
+using namespace std ;
+
+class IExecute{
+ public :
+ string command_str ; 
+ virtual void Execute(){
+        cout<<"IExecute Execute "<<endl;
+ }
+};
+
+class ExecuteOpen : public IExecute {
+ public :
+ ExecuteOpen(){
+         command_str = "Open" ;
+ }
+ void Execute(){
+         cout<<"Execute ExecuteOpen "<<endl;
+ }
+};
+class ExecuteRead : public IExecute{
+ public :
+ ExecuteRead(){
+        command_str = "Read" ;
+ }
+  void Execute(){
+        cout<<"Execute ExecuteRead "<<endl;
+  }
+};
+class ExecutePrint : public IExecute {
+ public :
+  ExecutePrint(){
+        command_str = "Print" ;
+  }
+  void Execute(){
+        cout<<"Execute ExecutePrint "<<endl;
+  }
+}; 
+
+class Invoker{
+ public : 
+ std::vector<IExecute*> CommandList ;
+ Invoker(){
+        CommandList.push_back(new ExecuteOpen());
+        CommandList.push_back(new ExecuteRead());
+        CommandList.push_back(new ExecutePrint());
+ }
+ IExecute* getCommand(string str){
+         IExecute *ex = NULL ;
+        for(int i = 0; i < CommandList.size(); i++){
+                if(CommandList[0]->command_str == str)
+                        return CommandList[0] ;
+        }
+ }
+};
+
+int main(){
+ Invoker* inv = new Invoker() ;//initialising invoker class
+ ExecuteOpen* op = new ExecuteOpen();// initialising the which command to execute class 
+ IExecute* objIExecute = new IExecute();// initialising base command patter class 
+ objIExecute = op ;
+ objIExecute = inv->getCommand("Open");
+ objIExecute->Execute();
+ return 0 ;
+}
+
+::::::::::::::
+copy_ctor.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+class X
+{
+ public :
+ X()
+ {
+        cout<<"Ctor"<<endl;         
+ }
+ X(const X &obj)
+ {
+        cout<<"Copy Constructor"<<endl;
+ }
+ ~X() 
+ {
+        cout <<"Dtor"<<endl ;
+ }
+
+};
+int main()
+{
+ cout<<"I am in main function "<<endl;         
+ X x ;
+// X b = x ;
+// X b(x);
+ return 0;
+}::::::::::::::
+co_related_process.cpp
+::::::::::::::
+
+#include<stdio.h>
+#include<string.h>
+#include <stdlib.h>
+int main()
+{
+ int fd[2],nbytes;
+ pid_t childpid ;
+ char string[] = "Hello, world !!!" ;
+ char readbuff[80];
+ pipe(fd);
+
+ if((childpid = fork()) == -1)
+ {
+         //Child process canot br created 
+        perror("fork");
+        exit(1);
+ }
+
+ if(childpid == 0)
+ {
+        // Send something to Server 
+        write(fd[1],string,(strlen(string)+1));
+        exit(0);
+ }
+ else
+ {
+        //Parent wants to receive data from child
+        read(fd[0],readbuff,sizeof(readbuff));         
+        printf("Parent ----The string is %s \n",readbuff);
+ }
+ return 0 ;
+}::::::::::::::
+cpls_inherit.cc
+::::::::::::::
+#include <iostream>
+using namespace std;
+
+class pure_foo {
+public:
+    virtual int interface(); //= 0 ;
+    int A1(){
+        cout<<"pure_foo::A1"<<endl;
+    }
+};
+
+int pure_foo::interface()
+{
+    cout<<"default pure_foo::interface() called"<<endl;
+    return 42;
+}
+
+class foobar : public pure_foo {
+    int interface(){
+      cout<<"foorbar::interface"<<endl;
+      //  pure_foo::interface() ;
+    }
+    public : 
+    int A1(){
+        cout<<"foorbar::A1"<<endl;
+    }    
+};
+
+
+int main() {
+    pure_foo *ptr = new foobar();
+    //foobar obj ;
+    ptr->interface();
+    ptr->A1();
+    return 0;
+}
+
+::::::::::::::
+cpp_const.cc
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+void display(const int& k){cout<<"display::const int k "<<endl;}
+//void display(int k){cout<<"display::int k "<<endl;}
+class A{
+        string ptr ;
+        public :
+        void getdata()
+        {
+                cout<<ptr <<" The word "<<endl ;
+        }
+/*        A(const string& str) : ptr(str)
+        {
+                cout<<"parameterised ctor"<<endl;
+        }
+        A(string&& st) : ptr(std::move(st))
+        {
+                cout<<"move ctor"<<endl;
+        }
+*/
+        template <typename T>
+        A(T&& st) : ptr(forward<T>(st)) 
+        { 
+                cout << "forward"<<endl; 
+        }
+};
+int main(){
+ //const int a = 6 ;
+ int j = 9 ;
+ string path = "string_var" ;
+ string path = "str" ;
+// const int *k = &j;
+// j = 10 ;
+// *k = a ;//Error
+// k++ ;
+// cout<<*k ;
+ A a1(path); // lvalue
+ A a2("aspar_path"); //rvaluei
+// A a3 = a1 ;
+ a1.getdata();
+ a2.getdata();
+// display(10);
+// display(j);
+ return 0 ;
+}
+::::::::::::::
+ctor_throw.cpp
+::::::::::::::
+#include <iostream>
+#include <memory>
+using namespace std ;
+class bar
+{
+public:
+  bar()
+  {
+    std::cout << "bar() called" << std::endl;
+  }
+
+  ~bar()
+  {
+    std::cout << "~bar() called" << std::endl;
+
+  }
+};
+class foo
+{
+public:
+  foo()
+  //  : b(new bar())
+  {
+    std::cout << "foo() called" << std::endl;
+    throw "throw something";
+  }
+
+  ~foo()
+  {
+    delete b;
+    std::cout << "~foo() called" << std::endl;
+  }
+
+private:
+//  bar *b;
+};
+
+
+int main(void)
+{
+  try {
+    std::cout << "heap: new foo" << std::endl;
+    shared_ptr<foo> f(new foo());
+  } 
+  catch (const char *e) {
+    std::cout << "heap exception: " << e << std::endl;
+//    delete f ;
+  }
+/*
+  try {
+    std::cout << "stack: foo" << std::endl;
+    foo f;
+  } catch (const char *e) {
+    std::cout << "stack exception: " << e << std::endl;
+  }
+*/
+  return 0;
+}
+::::::::::::::
+dfs_practice.cpp
+::::::::::::::
+#include<iostream>
+#include<list>
+#include<unordered_set>
+#include<array>
+using namespace std ;
+
+class graph{
+ int N ;
+ struct vertex {
+        int u ;
+        int v ;
+        
+ };
+ list<int> *adj;
+ array<bool> arr ;
+ public :
+ 
+ graph(int n){
+         N = n ;
+        adj = new list<int>[N];
+        arr = new array<bool>[N]
+ }
+ void addEdge(int src , int des){
+ //        cout<<__func__<<"++"<<endl;
+         this->adj[src].push_back(des) ;
+//        cout<<__func__<<"--"<<endl;
+ }
+
+ void dfs(int src ){
+         cout<<__func__<<"++"<<endl;
+        for (int i = 1; i <= N ; i++)
+                arr[i] = false;
+        
+        dfs_visit(src,arr.data() );
+        cout<<__func__<<"--"<<endl;
+ }
+ void dfs_visit(int src , array<bool> ar){
+         cout<<__func__<<"++" << src <<endl;
+        list<int>::iterator it = adj[src].begin();
+        //unordered_set<int>::iterator sit = s.begin();
+         while(it!= adj[src].end())
+        {
+        cout<<*it <<endl ;
+                        //if not aadded in set add it
+                //        if(s.find(i) != s.end()) 
+                        //call dfs on the dextination
+                
+        it++ ;
+        }        
+        cout<<__func__<<"--"<<endl;
+ }
+};
+int main(){
+         cout<<__func__<<"++"<<endl;
+        graph g(7) ;
+         g.addEdge(1,2);
+         g.addEdge(1,7);
+         g.addEdge(2,3);
+         g.addEdge(3,6);
+         g.addEdge(6,1);
+         g.addEdge(3,4);
+         g.addEdge(4,5);
+        g.dfs(&g);
+        cout<<__func__<<"--"<<endl;
+        return 0 ;
+}
+
+::::::::::::::
+ds_trie.c
+::::::::::::::
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define ARRAY_SIZE(a) sizeof(a)/sizeof(a[0])
+
+#define ALPHABET_SIZE (26)
+
+#define CHAR_TO_INDEX(c) ((int)c - (int)'a')
+
+
+struct TrieNode
+{
+        struct TrieNode *children[ALPHABET_SIZE];
+
+
+        bool isLeaf;
+};
+
+
+struct TrieNode *getNode(void)
+{
+        struct TrieNode *pNode = NULL;
+
+        printf("I am in getNode \n");
+
+        pNode = (struct TrieNode *)malloc(sizeof(struct TrieNode));
+
+        if (pNode)
+        {
+                int i;
+
+                pNode->isLeaf = false;
+
+                for (i = 0; i < ALPHABET_SIZE; i++)
+                        pNode->children[i] = NULL;
+        }
+        printf("Returning getNode \n");
+        return pNode;
+}
+
+void insert(struct TrieNode *root, const char *key)
+{
+        int level;
+        int length = strlen(key);
+        int index;
+        printf("start insert \n");
+         printf("key %s---\n",key);
+        struct TrieNode *pCrawl = root;
+
+        for (level = 0; level < length; level++)
+        {
+                printf("level %d---\n",level);
+                index = CHAR_TO_INDEX(key[level]);
+                printf("index %d---\n",index); // index in all alphabates 
+                 printf("children[index] %s---\n",pCrawl->children[index]);
+                if (!pCrawl->children[index])
+                {
+                        printf("pCrawl->children[index] is NULL \n");
+                        pCrawl->children[index] = getNode();
+                }
+                printf("assign index %d---\n",index);
+                pCrawl = pCrawl->children[index];
+        }
+
+        printf("end insert \n");        
+        pCrawl->isLeaf = true;
+}
+
+
+bool search(struct TrieNode *root, const char *key)
+{
+        int level;
+        int length = strlen(key);
+        int index;
+        struct TrieNode *pCrawl = root;
+
+        for (level = 0; level < length; level++)
+        {
+                index = CHAR_TO_INDEX(key[level]);
+
+                if (!pCrawl->children[index])
+                        return false;
+
+                pCrawl = pCrawl->children[index];
+        }
+
+        return (pCrawl != NULL && pCrawl->isLeaf);
+}
+
+int main()
+{
+        
+        //char keys[][8] = {"the", "a", "there", "answer", "any",
+//                                        "by", "bye", "their"};
+
+         char keys[][8] = {"the","ahere"};
+
+        char output[][32] = {"Not present in trie", "Present in trie"};
+
+
+        struct TrieNode *root = getNode();
+
+        printf("Root node is initialised  \n");
+        int i;
+        for (i = 0; i < ARRAY_SIZE(keys); i++)
+                insert(root, keys[i]);
+
+        
+//        printf("%s --- %s\n", "the", output[search(root, "the")] );
+//        printf("%s --- %s\n", "these", output[search(root, "these")] );
+//        printf("%s --- %s\n", "their", output[search(root, "their")] );
+//        printf("%s --- %s\n", "thaw", output[search(root, "thaw")] );
+
+        return 0;
+}
+
+::::::::::::::
+even_odd.cc
+::::::::::::::
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  even  = PTHREAD_COND_INITIALIZER;
+pthread_cond_t  odd   = PTHREAD_COND_INITIALIZER;
+
+void *printfun1(void *pnt);
+void *printfun2(void *pnt);
+
+int main(void)
+{
+    pthread_t pthread1, pthread2;
+    int ret1, ret2;
+
+    ret1 = pthread_create(&pthread1, NULL, printfun1, NULL);
+
+    if(ret1)
+    {
+        printf("thread creation failed");
+    }
+    ret2 = pthread_create(&pthread2, NULL, printfun2, NULL);
+    if(ret2)
+    {
+        printf("thread creation failed");
+    }
+
+    pthread_join(pthread1, NULL);
+    pthread_join(pthread2, NULL);
+}
+
+int counter = 0;
+
+void *printfun1(void *ptr)
+{
+    printf("in thread 1  \n");
+    while(counter < 50)
+    {
+        pthread_mutex_lock(&mutex);
+        while ((counter & 1) == 1){
+           printf("%d --waiting on pthread_cond_even \n", counter); 
+           pthread_cond_wait(&even, &mutex);
+        }
+        printf("%d \n", counter);
+        counter++;
+        printf("%d --signal even \n", counter);
+        pthread_cond_signal(&odd);
+        printf("%d --unlock mutex th 1 \n", counter);
+        pthread_mutex_unlock(&mutex);
+
+        usleep( 1000000);
+    }
+    return NULL;
+}
+
+void *printfun2(void *ptr)
+{
+    printf("in thread 2  \n");
+    while(counter < 50)
+    {
+        pthread_mutex_lock(&mutex);
+        while ((counter & 1) == 0){
+           printf("%d --waiting on pthread_cond_odd \n", counter); 
+           pthread_cond_wait(&odd, &mutex);
+        }
+
+        printf("%d \n", counter);
+        counter++;
+        printf("%d --signal even \n", counter);
+        pthread_cond_signal(&even);
+        printf("%d --unlock mutex th 2 \n", counter);
+        pthread_mutex_unlock(&mutex);
+
+        usleep( 1000000);
+    }
+    return NULL;
+}
+::::::::::::::
+factory_pattern.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+// Creational pattern
+
+/*enum type{
+ INVOICE_HEADER = 1 ,
+ INVOICE_FOOTER = 2 ,
+ INVOICE_MAX
+};*/
+
+/*class Invoice ; 
+
+class Factory{
+ public :
+ Invoice getType(int type){
+  if(type == 1 )
+        obj = new InvoiceWithFooter() ; 
+  if(type == 2 )
+        obj = new InvoiceWithHeader() ;
+  return obj ; 
+ }
+ 
+};
+*/
+class Invoice{
+ public :
+ Invoice(){
+ }
+  virtual void print(){        
+          cout<<"Invoice print"<<endl ;
+  }
+};
+
+class InvoiceWithFooter : public Invoice {
+ public :
+  InvoiceWithFooter(){
+  }
+  void print(){
+        cout<<"InvoiceWithFooter print"<<endl ;
+  }
+};
+
+class InvoiceWithHeader : public Invoice {
+ public :
+  InvoiceWithHeader(){
+  }
+  void print(){
+        cout<<"InvoiceWithHeader print"<<endl ;
+  }
+};
+
+class Factory{
+ public :
+ Invoice* getType(int type){
+  Invoice* obj = NULL ;//new Invoice();
+  if(type == 1 )
+        return new InvoiceWithFooter() ;
+  if(type == 2 )
+        return new InvoiceWithHeader() ;
+ return obj ;
+ }
+ 
+};
+
+int main(){
+ Factory *Fptr ;//= new Factory();
+ Invoice *ptr ;//= new Invoice();
+ int i ;
+ cout<<"Enter the invoice type "<<endl; 
+ cin>> i ;
+ ptr = Fptr->getType(i); 
+ ptr->print();
+ return 0 ;
+} 
+::::::::::::::
+fib_get.cpp
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+int fib(int x){
+        cout<<"running for---x "<<x<<endl;
+        if(x == 0){
+                cout<<"Returning 0 from here "<<endl;
+                return 0 ;
+        }
+        if(x == 1){
+                cout<<"Returning 1 from here "<<endl;
+                return 1 ;
+        }
+        if(x >=2 ){
+                cout<<"calling x-1 with x "<< x <<endl;
+                int sum1 = fib(x-1) ;
+                cout<<"Value of sum1 "<<sum1 <<endl;
+                cout<<"calling x-2 with x "<< x <<endl;
+                int sum2 = fib(x-2) ;
+                cout<<"Value of sum2 "<<sum2 <<endl;
+                return sum1 + sum2 ;
+        }
+}
+int main(){
+ int x ;
+ cin >> x ;
+ cout << fib(x)<<endl;
+ return 0 ;
+}
+
+
+::::::::::::::
+fibonacci_series.cpp
+::::::::::::::
+#include<iostream>
+
+using namespace std;
+
+int getfib(int num ){
+ if(num == 0)
+        return 0 ;
+ else if(num == 1)
+        return 1 ;
+ else 
+        return (getfib(num-1) + getfib(num-2)) ;        
+}
+int main(){
+
+ int n ;
+ cin >> n ;
+ for(int i = 0 ; i <= n ;i++)
+         cout<<getfib(n)<<" "<<endl;
+ return 0 ;
+}
+
+::::::::::::::
+fifo_write.cpp
+::::::::::::::
+#include<stdio.h>
+#include<string.h>
+int  main()
+{
+ char line[80];
+ int fp ;
+ fp = open("/home/rocky/myFIFO",O_CREAT);
+ 
+ printf("Enter Line----");
+ fgets(line,80,stdin);
+
+ write(fp,line,strlen(line));
+ 
+ close(fp);
+ return 0 ;
+}
+
+::::::::::::::
+getpair.c
+::::::::::::::
+#include <bits/stdc++.h>
+//using namespace std;
+#include<unordered_map> 
+int getPairsCount(int arr[], int n, int sum)
+{
+    unordered_map<int, int> m;
+    for (int i=0; i<n; i++)
+        m[arr[i]]++;
+    printf("%d---",m[arr[i]]); 
+    int twice_count = 0;
+ 
+    for (int i=0; i<n; i++)
+    {
+        twice_count += m[sum-arr[i]];
+ 
+        if (sum-arr[i] == arr[i])
+            twice_count--;
+    }
+    return twice_count/2;
+}
+
+int main()
+{
+    int arr[] = {1, 5, 7, -1, 5} ;
+    int n = sizeof(arr)/sizeof(arr[0]);
+    int sum = 6;
+    cout << "Count of pairs is "
+         << getPairsCount(arr, n, sum);
+    return 0;
+}
+::::::::::::::
+graph_isCyclic.cpp
+::::::::::::::
+#include<iostream>
+#include<map>
+#include<string>
+#include<vector>
+#include<set>
+using namespace std ;
+struct vertex ;
+typedef map<string,bool> visited ;
+typedef pair<int,vertex*> vpair ; // cost of vertex , dest vertex
+typedef map<string,vertex*> vmap ; // source string , dest vertex 
+struct vertex{
+        vector<vpair> adj ; 
+        string v ;
+        vertex(string s): v(s){ }
+};
+
+class graph{
+        bool isDirected ; 
+        public :
+        graph(bool flag):isDirected(flag){ }
+        vmap workingVertex ;
+        void addVertex(const string&);
+        void addEdge(const string& from , const string& dest , int cos);
+        int getNodeCount(){ return workingVertex.size() ; }
+        vmap allVertex(){ return workingVertex ; }
+        vector<vpair> getAdjacent(const string& source);
+        void DFS(string& name);
+        void DFUUtil(vertex *start , visited& visit );
+        void DFUUtilCycle(vertex *start, visited &visit, set<string>& setString );
+        void DFUCycle(string& from) ;
+};
+
+vector<vpair> graph::getAdjacent(const string& src){
+        vmap::iterator it = workingVertex.find(src) ;
+        if(it !=  workingVertex.end()){
+                vertex *f = (workingVertex.find(src)->second) ;        
+                return f->adj ;
+        }
+        cout<<"not found" <<endl ;
+}
+
+void graph::addVertex(const string& src){
+        vmap::iterator it = workingVertex.find(src) ;
+        if( it == workingVertex.end()){
+                cout<<src <<endl ;
+                vertex *v = new vertex(src) ;
+                workingVertex[src] = v ;
+                return ;
+        }
+        cout<<"Alread exists"<<endl ;
+}
+
+void graph::addEdge(const string& from, const string& to, int cos){
+        vertex *f = (workingVertex.find(from)->second) ; 
+        vertex *t = (workingVertex.find(to)->second) ;
+        pair<int,vertex*> edge = make_pair(cos,t);
+         f->adj.push_back(edge);
+        if(!isDirected){
+                pair<int,vertex*> edge = make_pair(cos,f);
+                t->adj.push_back(edge);
+        }
+}
+
+void graph::DFUUtilCycle(vertex *start , visited &visit,set<string>& setString ){
+        visit[start->v ] = true ; 
+        for(auto ad : this->getAdjacent(start->v)){
+                if(!(visit[(ad.second)->v])){
+                        cout<< (ad.second)->v  ;
+                        if(setString.find((ad.second)->v) == setString.end())
+                                setString.insert((ad.second)->v);
+                        cout<<"->";
+                        DFUUtilCycle(ad.second,visit,setString);
+                }
+                else{
+                        cout<<"Cycle found "<<endl ;
+                        break ;
+                }
+        }
+}
+
+void graph::DFUCycle(string& from){
+        visited visit ;
+        int i = 0 ;
+        std::set<string> setSt ; 
+        for(auto allV : allVertex() )
+                visit[allV.first] = false ;
+        vertex *start = workingVertex.find(from)->second ;
+        DFUUtilTopoSort(start,visit,setSt);
+ }
+
+void graph::DFUUtil(vertex *start , visited &visit ){
+        visit[start->v ] = true ;
+        cout<<start->v ;
+        for(auto ad : this->getAdjacent(start->v)){
+                if(!(visit[(ad.second)->v])){
+                       cout<<"->";
+                       DFUUtil((ad.second),visit);
+                }
+        }
+
+}
+
+void graph::DFS(string& from){
+        visited visit ;
+        int i = 0 ;
+        for(auto allV : allVertex() )
+                visit[allV.first] = false ;
+
+        vertex *start = workingVertex.find(from)->second ;
+        DFUUtil(start,visit);
+}
+
+int main(){
+ graph g(true) ;
+ g.addVertex("A") ;
+ g.addVertex("B") ;
+ g.addVertex("C") ;
+ g.addVertex("D") ;
+ g.addVertex("E") ;
+ g.addEdge("A","E",5);
+ g.addEdge("A","C",6);
+ g.addEdge("C","D",7);
+ g.addEdge("D","B",10);
+ g.addEdge("B","A",11);
+ cout<<"Total node count " <<g.getNodeCount()<<endl ; 
+ for(auto res : g.getAdjacent("A"))
+         cout << res.first <<" ---- > "<< (res.second)->v<<endl  ;
+ cout<<"========================================================="<<endl ;
+ for(auto res : g.getAdjacent("C"))
+        cout << res.first <<" ---- > "<< (res.second)->v<<endl  ; 
+ cout<<"=========================DFS=========================="<<endl ;
+ string src = "A" ;
+ g.DFS(src);//DFS on a directed graph may not traverse all vertex 
+ cout<<endl ;
+ cout<<"=========================isCyclic=========================="<<endl ;
+ g.DFSTopo(src) ;
+ cout<<endl ;
+ return 0 ;
+}
+::::::::::::::
+graph_op.cpp
+::::::::::::::
+#include<iostream>
+#include<list>
+#include<queue>
+
+#define pb push_back
+using namespace std ;
+class graph{
+        int nodes ;
+        list<int>* adjmat ;
+        bool *visited ;         
+   public :
+        graph(int n ){
+                nodes = n ;
+                adjmat = new list<int>[n];
+                visited = new bool[n];
+        }
+        
+        void addEdge(int u , int v){
+                adjmat[u].pb(v);
+        }
+        //Traverse the graph from the given node 
+        void BFSTraversal(int n ){
+                for(int i =  0 ; i < nodes ; i++ ){
+                        visited[i] = false ;
+                }
+
+                list<int>::iterator it ;
+
+                list<int> q ;
+                q.push_back(n);
+
+                while(!q.empty()){
+                        int currNode = q.front();
+                        cout<<currNode<<" " ;
+                        q.pop_front();
+                        for(it = adjmat[currNode].begin() ; it != adjmat[currNode].end();it++){
+                                if(!visited[*(it)]){
+                                        visited[*it] = true ;
+                                        q.push_back(*it);
+                                }
+                        }
+                }
+                cout<<endl ;
+        }
+
+        void DFSUtil(int v ,bool visited[] ){
+                visited[v] = true ;
+                cout<< v << " " ;
+                list<int>::iterator it = adjmat[v].begin();
+                while(it != adjmat[v].end()){
+                if(!visited[*it])        
+                        DFSUtil(*it,visited) ;
+                it++;
+                }
+                
+        }
+        //Traverse the node from the given node 
+        void DFSTraversal(int n ){
+                for(int i = 0 ; i < nodes ; i++)
+                        visited[i] = false ;
+                
+                DFSUtil(n,visited);
+        }
+
+        //Traverse all node 
+        void TraverseAllDFS(){
+                for(int i = 0 ; i < nodes ; i++)
+                        visited[i] = false ;                
+                for(int i = 0 ; i < nodes ; i++){
+                        if(visited[i] == false )
+                                DFSUtil(i,visited);
+                }
+        }
+};
+
+int main(){
+        graph g(4);
+        cout<<"created .."<<endl;
+        g.addEdge(0,1);
+        g.addEdge(0,2);
+        g.addEdge(1,2);
+        g.addEdge(2,0);
+        g.addEdge(2,3);
+        g.addEdge(3,3);
+        cout<<"BFS from 3 "<<endl;
+        g.BFSTraversal(3);
+        cout<<endl ;
+        cout<<"DFS from 3 "<<endl;
+        g.DFSTraversal(3);
+        cout<<endl;
+        cout<<"Traverse all node of the graph "<<endl;
+        g.TraverseAllDFS();
+        cout<<endl;
+}::::::::::::::
+graph_practice.cpp
+::::::::::::::
+#include<iostream>
+#include<map>
+#include<string>
+#include<vector>
+using namespace std ;
+struct vertex ;
+typedef map<string,bool> visited ;
+typedef pair<int,vertex*> vpair ; // cost of vertex , dest vertex
+typedef map<string,vertex*> vmap ; // source string , dest vertex 
+struct vertex{
+        vector<vpair> adj ; 
+        string v ;
+        vertex(string s): v(s){ }
+};
+
+class graph{
+        bool isDirected ; 
+        public :
+        graph(bool flag):isDirected(flag){ }
+        vmap workingVertex ;
+        void addVertex(const string&);
+        void addEdge(const string& from , const string& dest , int cos);
+        int getNodeCount(){ return workingVertex.size() ; }
+        vmap allVertex(){ return workingVertex ; }
+        vector<vpair> getAdjacent(const string& source);
+        void DFS(string& name);
+        void DFUUtil(vertex *start , visited& visit );
+};
+
+vector<vpair> graph::getAdjacent(const string& src){
+        vmap::iterator it = workingVertex.find(src) ;
+        if(it !=  workingVertex.end()){
+                vertex *f = (workingVertex.find(src)->second) ;        
+                return f->adj ;
+        }
+        cout<<"not found" <<endl ;
+}
+
+void graph::addVertex(const string& src){
+        vmap::iterator it = workingVertex.find(src) ;
+        if( it == workingVertex.end()){
+                cout<<src <<endl ;
+                vertex *v = new vertex(src) ;
+                workingVertex[src] = v ;
+                return ;
+        }
+        cout<<"Alread exists"<<endl ;
+}
+
+void graph::addEdge(const string& from, const string& to, int cos){
+        vertex *f = (workingVertex.find(from)->second) ; 
+        vertex *t = (workingVertex.find(to)->second) ;
+        pair<int,vertex*> edge = make_pair(cos,t);
+         f->adj.push_back(edge);
+        if(!isDirected){
+                pair<int,vertex*> edge = make_pair(cos,f);
+                t->adj.push_back(edge);
+        }
+}
+
+void graph::DFUUtil(vertex *start , visited &visit ){
+        visit[start->v ] = true ; 
+        cout<<start->v ;
+        for(auto ad : this->getAdjacent(start->v)){
+                if(!(visit[(ad.second)->v])){
+                        cout<<"->";
+                        DFUUtil((ad.second),visit);
+                }
+        }
+}
+
+void graph::DFS(string& from){
+        visited visit ;
+        int i = 0 ;
+        for(auto allV : allVertex() )
+                visit[allV.first] = false ;
+
+        vertex *start = workingVertex.find(from)->second ;
+        DFUUtil(start,visit);
+}
+
+int main(){
+ graph g(false) ;
+ g.addVertex("A") ;
+ g.addVertex("B") ;
+ g.addVertex("C") ;
+ g.addVertex("D") ;
+ g.addEdge("A","B",5);
+ g.addEdge("C","A",6);
+ g.addEdge("C","B",7);
+ g.addEdge("A","D",10);
+ cout<<"Total node count " <<g.getNodeCount()<<endl ; 
+ for(auto res : g.getAdjacent("A"))
+         cout << res.first <<" ---- > "<< (res.second)->v<<endl  ;
+ cout<<"========================================================="<<endl ;
+ for(auto res : g.getAdjacent("C"))
+        cout << res.first <<" ---- > "<< (res.second)->v<<endl  ; 
+ cout<<"=========================DFS=========================="<<endl ;
+ string src = "A" ;
+ g.DFS(src);//DFS on a directed graph may not traverse all vertex 
+ cout<<endl ;
+ return 0 ;
+}
+::::::::::::::
+graph_practice_list.cpp
+::::::::::::::
+#include<iostream>
+#include<map>
+#include<string>
+#include<vector>
+#include<list>
+using namespace std ;
+struct vertex ;
+typedef map<string,bool> visited ;
+typedef pair<int,vertex*> vpair ; // cost of vertex , dest vertex
+typedef map<string,vertex*> vmap ; // source string , dest vertex 
+struct vertex{
+        list<vpair> adj ; 
+        string v ;
+        vertex(string s): v(s){ }
+};
+
+class graph{
+        bool isDirected ; 
+        public :
+        graph(bool flag):isDirected(flag){ }
+        vmap workingVertex ;
+        void addVertex(const string&);
+        void addEdge(const string& from , const string& dest , int cos);
+        int getNodeCount(){ return workingVertex.size() ; }
+        vmap allVertex(){ return workingVertex ; }
+        list<vpair> getAdjacent(const string& source);
+        void DFS(string& name);
+        void DFUUtil(vertex *start , visited& visit );
+};
+
+list<vpair> graph::getAdjacent(const string& src){
+        vmap::iterator it = workingVertex.find(src) ;
+        if(it !=  workingVertex.end()){
+                vertex *f = (workingVertex.find(src)->second) ;        
+                return f->adj ;
+        }
+        cout<<"not found" <<endl ;
+}
+
+void graph::addVertex(const string& src){
+        vmap::iterator it = workingVertex.find(src) ;
+        if( it == workingVertex.end()){
+                cout<<src <<endl ;
+                vertex *v = new vertex(src) ;
+                workingVertex[src] = v ;
+                return ;
+        }
+        cout<<"Alread exists"<<endl ;
+}
+
+void graph::addEdge(const string& from, const string& to, int cos){
+        vertex *f = (workingVertex.find(from)->second) ; 
+        vertex *t = (workingVertex.find(to)->second) ;
+        pair<int,vertex*> edge = make_pair(cos,t);
+         f->adj.push_back(edge);
+//        if(!isDirected){
+//                pair<int,vertex*> edge = make_pair(cos,f);
+//                t->adj.push_back(edge);
+//        }
+}
+/*
+void graph::DFUUtil(vertex *start , visited &visit ){
+        visit[start->v ] = true ; 
+        cout<<start->v ;
+        for(auto ad : this->getAdjacent(start->v)){
+                if(!(visit[(ad.second)->v])){
+                        cout<<"->";
+                        DFUUtil((ad.second),visit);
+                }
+        }
+}
+
+void graph::DFS(string& from){
+        visited visit ;
+        int i = 0 ;
+        for(auto allV : allVertex() )
+                visit[allV.first] = false ;
+
+        vertex *start = workingVertex.find(from)->second ;
+        DFUUtil(start,visit);
+}
+*/
+int main(){
+ graph g(false) ;
+ g.addVertex("A") ;
+ g.addVertex("B") ;
+ g.addVertex("C") ;
+ g.addVertex("D") ;
+ g.addVertex("E") ;
+ g.addEdge("A","E",5);
+ g.addEdge("A","C",5);
+ g.addEdge("C","D",6);
+ g.addEdge("D","B",7);
+ g.addEdge("B","A",10);
+ cout<<"Total node count " <<g.getNodeCount()<<endl ; 
+ for(auto res : g.getAdjacent("A"))
+         cout << res.first <<" ---- > "<< (res.second)->v<<endl  ;
+ cout<<"========================================================="<<endl ;
+ for(auto res : g.getAdjacent("C"))
+        cout << res.first <<" ---- > "<< (res.second)->v<<endl  ; 
+// cout<<"=========================DFS=========================="<<endl ;
+// string src = "A" ;
+// g.DFS(src);//DFS on a directed graph may not traverse all vertex 
+ cout<<endl ;
+ return 0 ;
+}
+::::::::::::::
+hash_function.cpp
+::::::::::::::
+#include<iostream>
+using namespace std ;
+
+const int TABLE_SIZE = 128;
+
+class HashEntry{
+        private : 
+                int key ;
+                int value ;
+        public :
+        HashEntry(int k , int v){
+                key = k ;
+                value = v ;
+        }
+        int getKey(){
+                return key ;
+        }
+        int getValue(){
+                return value ;
+        }
+};
+
+class HashMap{
+        private :
+        HashEntry **tab ;
+        public :
+        HashMap(){
+                tab = new HashEntry*[TABLE_SIZE];
+                for(int i = 0 ; i < TABLE_SIZE ; ++i )
+                        tab[i] = NULL ;
+        }
+        ~HashMap(){
+        
+                for(int i = 0 ; i < TABLE_SIZE ; ++i ){
+                        if(tab[i] != NULL)
+                        delete tab[i] ;
+                }
+                delete[] tab ;
+        }
+        int get(int key){
+                int hash = key % TABLE_SIZE ;
+                cout<<"hash is "<<hash<<" " ; 
+                while(tab[hash] != NULL && tab[hash]->getKey() != key){
+                        hash = (hash + 1 ) % TABLE_SIZE ;
+                }
+                
+                //hash is found 
+                if(tab[hash] == NULL)
+                        return -1 ;
+                else
+                        return tab[hash]->getValue();
+        }
+        void put(int key,int val){
+                int hash = (key % TABLE_SIZE);
+                while(tab[hash] != NULL && tab[hash]->getKey() != key){
+                        hash = (hash + 1 ) % TABLE_SIZE ;
+                }
+                tab[hash] = new HashEntry(key,val);
+        }
+};
+
+int main()
+{
+ //int 
+ HashMap h ;
+ h.put(1,5);
+ cout<<h.get(1);
+ cout<<endl;
+ h.put(1,6);
+ cout<<h.get(1);
+ cout<<endl ;
+ h.put(1,7);
+ cout<<h.get(1)<<endl;
+ cout<<h.get(2)<<endl;
+ cout<<endl ;
+ return 0 ;
+}
+::::::::::::::
+hash_map_search.cpp
+::::::::::::::
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <map>
+#include <unordered_map>
+using namespace std;
+
+
+int main() {
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */ 
+    int intEntries ;
+    std::unordered_map<string,int> PhoneBook ;
+    string name ;
+    int iPhone ;
+    cin>>intEntries;
+    while(intEntries--){
+       cin>>name>>iPhone ;
+       PhoneBook.insert(make_pair(name,iPhone)); 
+        
+    }
+    while(cin>>name){
+       std::unordered_map<string,int>::iterator itr = PhoneBook.find(name) ;
+    if( itr == PhoneBook.end())
+        cout<<"Not found"<<endl;
+    else{
+        cout<<itr->first<<"="<<itr->second<<endl;
+    } 
+    }
+    
+    
+    return 0;
+}
+
+::::::::::::::
+heap_max_practice.cpp
+::::::::::::::
+#include<iostream>
+#include<algorithm>
+
+using namespace std ;
+
+/*
+ 5 | 7 | 8 | 10 | 25 | 45 
+
+          500(0)
+         /  \
+        45  90
+       / \  / \
+      6  8 9  10         
+*/
+int L(int v){
+        return (2 * v ) + 1 ;
+}
+
+int R(int v){
+        return ( (2 * v ) + 2) ;
+}
+
+int P(int v){
+        return (v/2) ;
+}
+void max_heapfy(vector<int> &vct , int index , int v_size){
+
+        int left = L(index) ;        int largest = index ;        int right = R(index);
+        if(vct[index] < vct[left] && left < v_size)
+                largest = left ;
+        if(vct[largest] < vct[right] && right < v_size)
+                largest = right ;
+        if(largest != index){
+                        swap(vct[largest],vct[index]);
+                        max_heapfy(vct,largest,v_size);
+        }
+}
+
+
+int main(){
+ 
+ vector<int> v = {23 , 45 ,76,25 , 89 , 20 , 10 } ;
+ int sizeOfVector = v.size() /2 ;
+ for(int i = sizeOfVector ; i >=0 ; i--)
+        max_heapfy(v,i,v.size());
+
+ for(auto i : v)
+        cout<< i << " ";
+// cout<<v[0]<<"last in vector "<<endl ;
+ return 0 ;
+}
+
+
+::::::::::::::
+heap_practice.cpp
+::::::::::::::
+#include<iostream>
+#include<array>
+#include <algorithm>
+
+using namespace std ;
+
+int L(int i ){
+        return ((2*i) + 1  ); 
+}
+int R(int i ){
+        return ((2*i) + 2 ); 
+}
+int P(int i ){
+        return (i/2) ;
+}
+
+void max_heapfy(array<int,7> &B , int j ){
+        int l = L(j);cout<<endl <<"l ==="<<l ;
+        int r = L(j);cout<<endl <<"r ==="<<r ;
+        int largest ;// = j ;
+        if(B[l] > B[j] && l <= B.size() )
+                largest = l ;//swap(l,j);
+        else
+                largest = j ;
+
+        if(B[r] > B[largest] && r <= B.size() )
+                largest = r ;
+        cout<<endl<<"largest "<< largest <<" j "<< j <<endl ;
+        if(largest != j){
+                swap(B[j],B[largest]);
+                max_heapfy(B,largest);        
+        }
+}
+
+void display(array<int,7> &C){
+        for(int p = 0 ; p < C.size() ; p++)
+                cout<<C[p] << " " ;
+}
+
+int main(){
+ array<int,7> A = {3 , 20 , 15 , 10 , 9, 8 ,5};
+
+ display(A);
+ cout<<endl ;
+
+ for(int k = A.size()/2 ; k >= 0 ; k--){
+         cout<< endl << "k--"<< k ; 
+        max_heapfy(A,k);
+ }
+
+ cout<<"after heapfy.."<<endl;
+ display(A);
+
+ cout<<endl ;
+ return 0 ;
+}
+::::::::::::::
+inherit1.cpp
+::::::::::::::
+#include<iostream>
+using namespace std;
+ 
+class A
+{
+  int x;
+public:
+  A(int i) { x = i; }
+  void print() { cout << x; }
+};
+ 
+class B: virtual public A
+{
+public:
+  B():A(10) {  }
+};
+ 
+class C:  virtual public A 
+{
+public:
+  C():A(10) {  }
+};
+ 
+class D: public B, public C {
+};
+ 
+int main()
+{
+    D d;
+    d.print();
+    return 0;
+}
+::::::::::::::
+inherit.cpp
+::::::::::::::
+#include<iostream>
+using namespace std;
+ 
+class A
+{
+  int x;
+public:
+  void setX(int i) {x = i;}
+  void print() { cout << x; }
+};
+ 
+class B:  public A
+{
+public:
+  B()  { setX(10); }
+};
+ 
+class C:  public A  
+{
+public:
+  C()  { setX(20); }
+};
+ 
+class D: public B, public C {
+};
+ 
+int main()
+{
+    D d;
+    d.print();
+    return 0;
+}
+::::::::::::::
+isUnique.cpp
+::::::::::::::
+#include<iostream>
+#include<vector>
+#define GET_INDEX(x) ( x - 'a') 
+using namespace std;
+
+int get_position(char c)
+{
+        return c - 'a' ;
+}
+
+bool isUnique(string &in)
+{
+ vector<int> v(26,0);
+ for(char c : in){
+        if(v[GET_INDEX(c)])
+                return false ;
+         v[GET_INDEX(c)] = 1 ;
+ }
+ return true ;
+}
+
+int main(){
+ string input ;
+ cout<<"Enter a string "<<endl ;
+ cin>> input ;
+ cout<<isUnique(input);
+ cout<<endl ;
+ return 0 ;
+}
+
+::::::::::::::
+learning_pthread.c
+::::::::::::::
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define N 5
+
+void *worker_thread(void *arg)
+{
+        printf("This is worker_thread #%ld\n", (long)arg);
+        pthread_exit(NULL);
+}
+
+int main()
+{
+        pthread_t my_thread[N];
+
+        long id;
+        for(id = 1; id <= N; id++) {
+                int ret =  pthread_create(&my_thread[id], NULL, &worker_thread, (void*)id);
+                if(ret != 0) {
+                        printf("Error: pthread_create() failed\n");
+                        exit(EXIT_FAILURE);
+                }
+        }
+
+        pthread_exit(NULL);
+}
+::::::::::::::
+linked_list.cpp
+::::::::::::::
+#include<iostream>
+#include<queue>
+
+using namespace std ;
+
+struct node{
+        int data ;
+        struct node* left ;
+        struct node* right ;
+        node(int v ) : data(v) , left(NULL) , right(NULL){ }
+};
+
+struct node* addToTree(struct node* root ,int lv){
+        if(root == NULL){
+                struct node* newnode = new node(lv);
+                return newnode;
+        }
+        else{
+                struct node* newnode = new node(lv);
+                if(lv < root->data){
+        //                cout<<"going for left "<<endl ;
+                        root->left = addToTree(root->left,lv) ;
+                }
+                else{
+        //                cout<<"going for right "<<endl;
+                        root->right = addToTree(root->right,lv) ;
+                }
+        }
+        return root ;        
+}
+
+void inorder(struct node *root){
+
+        if(root == NULL)
+                return ; 
+        inorder(root->left);
+        cout<<root->data<<" " ;
+        inorder(root->right);
+}
+void printlevelOrder(struct node* root){
+        int level = 0 ;
+        if(root == NULL)
+                return ;
+        else{
+                queue<node*> q ;
+                q.push(root);
+
+                int n = q.size();
+                while(1){
+                        int n = q.size();
+                        if(n == 0)
+                                break ;
+                
+                        level++ ;
+                        while(n > 0 ){
+                                struct node* tmp = q.front();
+                                cout<<tmp->data<<" " ;
+                                q.pop();
+                                if(tmp->right)
+                                        q.push(tmp->right);
+                                if(tmp->left)
+                                        q.push(tmp->left);        
+                                n-- ;
+                        }
+                }
+        }
+        cout<< endl <<"Total level "<<level <<endl ;
+}
+int main(){
+ struct node* root = new node(50);
+ addToTree(root,25);        
+ addToTree(root,75);        
+ addToTree(root,20);        
+ addToTree(root,30);        
+ addToTree(root,60);        
+ addToTree(root,80);
+ cout<<"Print level order traversal "<<endl;
+ printlevelOrder(root);        
+// cout<<endl<<"inorder"<<endl ;
+// inorder(root);
+ return 0 ;
+}
+::::::::::::::
+linked_list_test.cpp
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+struct node{
+        int data ;
+        struct node* next ;
+        node(int d ):data(d),next(NULL){}
+};
+
+struct node* insert(struct node* head , int val){
+        if(head == NULL){
+                return NULL;
+        }
+        else{
+                while(head->next != NULL){
+                        head = head->next ;
+                }
+                struct node* tmp = new node(val);
+                head->next = tmp ;
+        }
+        return head ;
+}
+
+void print_list(struct node* ll){
+        if(ll == NULL)
+                return  ;
+        else{
+                while(ll != NULL){
+                        cout<<" "<<ll->data ;
+                        ll = ll->next ;
+                }
+        }
+}
+int main(){
+ struct node* head = new node(5); 
+ insert(head,10);
+ insert(head,30);
+ insert(head,50);
+ print_list(head);
+ cout<<endl ;
+ return 0 ;
+}
+::::::::::::::
+list_frward.cc
+::::::::::::::
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <forward_list>
+using namespace std;
+
+
+int main() {
+    long M;
+    cin >> M;
+    long temp;
+    forward_list<long> data;
+    while (cin >> temp){
+        data.push_front(temp);
+    }
+/*    do{
+
+        data.push_front(temp);
+    }while(cin >> temp); 
+  */
+   while (--M > 0 && !data.empty()){
+        data.pop_front();
+    }
+    if (!data.empty()){
+        cout << data.front();
+    }
+    else {
+        cout << "NIL";
+    }
+    
+    return 0;
+}
+::::::::::::::
+list_operation.cpp
+::::::::::::::
+#include<stdio.h>
+#include<stdlib.h>
+ 
+/* Link list node */
+struct node
+{
+    int data;
+    struct node* next;
+};
+ 
+/* Function to reverse the linked list */
+static void reverse(struct node** head_ref)
+{
+    struct node* prev   = NULL;
+    struct node* current = *head_ref;
+    struct node* next;
+    while (current != NULL)
+    {
+        next  = current->next;  
+        current->next = prev;   
+        prev = current;
+        current = next;
+    }
+    *head_ref = prev;
+}
+ 
+/* Function to push a node */
+void push(struct node** head_ref, int new_data)
+{
+    /* allocate node */
+    struct node* new_node =
+            (struct node*) malloc(sizeof(struct node));
+            
+    /* put in the data  */
+    new_node->data  = new_data;
+                
+    /* link the old list off the new node */
+    new_node->next = (*head_ref);    
+        
+    /* move the head to point to the new node */
+    (*head_ref)    = new_node;
+}
+ 
+/* Function to print linked list */
+void printList(struct node *head)
+{
+    struct node *temp = head;
+    while(temp != NULL)
+    {
+        printf("%d  ", temp->data);    
+        temp = temp->next;  
+    }
+}    
+
+void printnthLast(struct node *head , int n )
+{
+        printf("\n\nprintnthLast\n");
+        struct node *firstptr = head ;
+        struct node *slowptr = head ;
+        for(int i = 0 ; i < n-1 ; i++){
+                if(slowptr == NULL){
+                        printf("\nbreak\n");
+                        break;
+                }
+                slowptr = slowptr->next ;
+        }
+        
+        while (slowptr->next != NULL) {
+                firstptr = firstptr->next;
+                slowptr = slowptr->next;
+          }
+
+        printf("nth last --%d  ", firstptr->data);
+}
+ 
+/* Driver program to test above function*/
+int main()
+{
+    /* Start with the empty list */
+    struct node* head = NULL;
+   
+        push(&head, 20);
+        push(&head, 4);
+        push(&head, 15); 
+        push(&head, 85);      
+        push(&head, 35);
+        push(&head, 25);
+        push(&head, 100);
+        push(&head, 40);
+        
+     
+     printf("Given linked list\n");
+     printList(head);    
+     printnthLast(head, 2);
+//    reverse(&head);                      
+//     printf("\nReversed Linked list \n");
+//     printList(head);    
+     getchar();
+}::::::::::::::
+make_anagram.cpp
+::::::::::::::
+
+#include <string>
+#include <bitset>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+#include <unordered_map>
+
+using namespace std;
+
+int number_needed(string a, string b) {
+  
+        std::unordered_map<char, int> chars; 
+        std::unordered_map<char, int>::iterator itr;  
+        for (int i = 0 ; i < a.length() ; i++ ) 
+                ++chars[a[i]];
+
+        cout<<"After traversing first string "<<endl;
+
+        itr = chars.begin();
+        while(itr != chars.end()){
+                cout<<itr->first<<"---"<<itr->second <<endl;
+                ++itr ;
+        }
+
+        for (int i = 0 ; i < b.length() ; i++ )
+                --chars[b[i]]; 
+
+        cout<<"After traversing second string "<<endl;
+
+        itr = chars.begin();
+        while(itr != chars.end()){
+                cout<<itr->first<<"---"<<itr->second <<endl;
+                ++itr ;
+        }
+
+        cout<<"Traversing finished "<<endl;
+
+        itr = chars.begin();
+        while(itr != chars.end()){
+                cout<<itr->first<<"---"<<itr->second <<endl;
+                ++itr ;
+        }
+
+        cout<<"Calculation begins "<<endl;
+
+        int needed = 0; 
+
+        itr = chars.begin();
+        while(itr != chars.end()){
+                needed = needed + abs(itr->second);
+                ++itr ;
+        }
+                
+    return needed;  
+}
+
+int main(){
+    string a;
+    cin >> a;
+    string b;
+    cin >> b;
+    cout << number_needed(a, b) << endl;
+    return 0;
+}
+::::::::::::::
+map_pract.cc
+::::::::::::::
+#include<iostream>
+#include<map>
+
+using namespace std ;
+
+typedef map<char,int> vmap ;
+int main(){
+ vmap mp ;
+ mp.insert(make_pair<char,int>('a',1));
+ mp.insert(make_pair<char,int>('c',3));
+ return 0 ;
+}
+::::::::::::::
+map_search.cpp
+::::::::::::::
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <map>
+using namespace std;
+
+
+int main() {
+    /* Enter your code here. Read input from STDIN. Print output to STDOUT */ 
+    int intEntries ;
+    map<string,int> PhoneBook ;
+    string name ;
+    int iPhone ;
+    cin>>intEntries;
+    while(intEntries--){
+       cin>>name>>iPhone ;
+       PhoneBook.insert(make_pair(name,iPhone)); 
+        
+    }
+    while(cin>>name){
+       map<string,int>::iterator itr = PhoneBook.find(name) ;
+    if( itr == PhoneBook.end())
+        cout<<"Not found"<<endl;
+    else{
+        cout<<itr->first<<"="<<itr->second<<endl;
+    } 
+    }
+    
+    
+    return 0;
+}
+
+::::::::::::::
+move_seman.cc
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+void printInt(int& k){ cout<<"printInt lvalue "<<k<<endl ;}
+//void printInt(int k){ cout<<"printInt rvalue "<<k<<endl ;}
+void printInt(int&& k){ cout<<"printInt move value "<<k<<endl ;}
+int main(){
+ int a = 5 ;
+ printInt(a);
+ printInt(5);
+ return 0 ;
+}
+
+::::::::::::::
+mutex_learn.cpp
+::::::::::::::
+#include<iostream>
+#include<pthread.h>
+#include <unistd.h>
+using namespace std ;
+int global_var = 10 ;
+void *display(void *param)
+{
+        global_var = ::global_var + 1 ;
+        cout<<"global_var "<< global_var <<"pthread_self "<< pthread_self()<<endl;
+}
+int main()
+{
+ int ret ;
+ void* status = NULL;
+ pthread_t pt[2] ;
+// void *p = new int();
+ for(int x = 0 ; x < 2 ; x++)
+ {
+ ret = pthread_create(&pt[x],NULL,&display,NULL);
+ if(ret != 0)
+        cout<<"pthread_create error"<<endl;
+ }
+ sleep(2);
+ 
+ for(int y = 0 ; y < 2 ; y++)
+ {
+         pthread_join(pt[y],&status);
+ }
+ return 0 ;
+}
+::::::::::::::
+mutex_sample.c
+::::::::::::::
+#include<iostream>
+#include<pthread.h>
+#include<stdio.h>
+using namespace std;
+int NUM_THREAD = 2;
+pthread_mutex_t lock;
+pthread_cond_t cond;
+int global = 0 ;
+
+void *worker1(void *null)
+{
+        int i = 0 ;
+        while(i < 3)
+        {        
+                i++ ;
+                pthread_mutex_lock(&lock);
+                cout<<"locking in th 1 "<<endl ;
+                while (global == 0 ) 
+                {
+                        cout<<"cond wait  in th 1 "<<endl ;
+                        pthread_cond_wait(&cond, &lock);
+                }
+// when global is 1
+                cout<<"Hi"<<endl;
+                global = 0 ;
+                cout<<"cond broad  in th 1 "<<endl ;
+                pthread_cond_signal(&cond); 
+                cout<<"unlocking in th 1 "<<endl ;
+                pthread_mutex_unlock(&lock);
+        }
+}
+
+void *worker2(void *null)
+{
+        int j = 0;
+        while (j < 3 )
+        {
+                j++ ;
+                pthread_mutex_lock(&lock);
+                cout<<"locking in th 2 "<<endl ;
+               while (global == 1 )
+                {
+                        cout<<"cond wait  in th 2 "<<endl ;
+                        pthread_cond_wait(&cond, &lock);
+                }
+// when global is 0
+                cout<<"Hello"<<endl;
+                global = 1 ;
+                cout<<"cond broad  in th 2 "<<endl ;
+                pthread_cond_signal(&cond); 
+        //        sleep(1);
+                cout<<"unlocking in th 2 "<<endl ;               
+                pthread_mutex_unlock(&lock);
+        }
+}
+int main()
+{
+        int ret,i;
+        global = 0 ;
+        pthread_t thread_id[2];
+        if(pthread_mutex_init(&lock,NULL) != 0)
+                cout<<"Error -----"<<endl;
+        if (pthread_cond_init(&cond, NULL) != 0)                                    
+                    perror("pthread_cond_init() error");                                        
+        ret = pthread_create(&thread_id[0], NULL, worker1, NULL);
+        if(ret != 0)
+                perror("creation of thread");
+        ret = pthread_create(&thread_id[1], NULL, worker2, NULL);
+        if(ret != 0)
+                perror("creation of thread");
+        for(i = 0; i < NUM_THREAD; i++)
+        {
+                pthread_join(thread_id[i], NULL);
+        }
+        if (pthread_cond_destroy(&cond) != 0)                                       
+            perror("pthread_cond_destroy() error");                                     
+        pthread_mutex_destroy(&lock);
+
+}
+::::::::::::::
+mutex_testing.c
+::::::::::::::
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+
+volatile int counter = 0;
+pthread_mutex_t myMutex;
+
+void *mutex_testing(void *param)
+{
+        int i;
+        for(i = 0; i < 5; i++) {
+                //pthread_mutex_lock(&myMutex;);
+                counter++ ;
+                usleep(1);
+                printf("thread %d counter = %d\n", param,  counter);
+                //pthread_mutex_unlock(&myMutex;);
+        }
+}
+
+int main()
+{
+        int one = 1, two = 2, three = 3;
+        pthread_t thread1, thread2, thread3;
+        pthread_mutex_init(&myMutex,0);
+        pthread_create(&thread1, 0, mutex_testing, (void *)(intptr_t) one);
+        pthread_create(&thread2, 0, mutex_testing, (void *)(intptr_t) two);
+        pthread_create(&thread3, 0, mutex_testing, (void *)(intptr_t) three);
+        pthread_join(thread1, 0);
+        pthread_join(thread2, 0);
+        pthread_join(thread3, 0);
+        pthread_mutex_destroy(&myMutex);
+        return 0;
+}
+::::::::::::::
+my_begin.cc
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+class MY_CLASS{
+ int data ;
+ public :
+ int getData(){
+         return data ;
+ }
+ void setData(int d){
+         data = d ;
+ }
+};
+
+int main(){
+ cout<<"m in main function "<<endl;
+ MY_CLASS M ;
+ M.setData(10);
+ cout<<M.getData()<<endl;
+ return 0 ;
+}
+::::::::::::::
+my_practive.cc
+::::::::::::::
+#include<iostream>
+#include<memory>
+using namespace std ;
+
+struct node{
+ int data ;
+ unique_ptr<node*> next ;
+};
+
+void insert(unique<node*>& after,unique<node*>& newnode){
+        swap(after->next, newnode->next);
+        swap(after->next,newnode)
+}
+
+int main(){
+ std::unique_ptr<node* > root;
+// unique_ptr<node*> share_pt(new node) ;//= getnode();
+// share_pt->data = 5 ;
+// share_pt->next = NULL ;
+ return 0 ;
+}
+::::::::::::::
+named_semaphore.c
+::::::::::::::
+#include<sys/types.h>
+#include<stdio.h>
+#include<errno.h>
+#include<fcntl.h>
+#include<unistd.h>
+#include<semaphore.h>
+
+sem_t *sem ;
+int create_flag = O_CREAT ;
+mode_t mode = 0644 ;
+const char *sem_name = "/temp/mysem" ;
+int value = 3 ;
+int sts ;
+
+int main(){
+ sem = sem_open(sem_name,O_CREAT|O_RDWR,mode,value); 
+ if(sem == SEM_FAILED)
+        perror("sem error ");
+
+ /* Close the shared memory object */
+ 
+ // close(sem);
+
+ //Close the sema phore
+ sts = sem_close(sem);
+ printf("sem_close ---- %d----  %d\n",sts,errno);
+ //Delete the shared memory object 
+ sts = sem_unlink(sem_name);
+ printf("sem_unlink ---- %d\n",sts);
+
+ printf("exit from function \n");
+ return 0 ;
+}
+
+::::::::::::::
+observation_pattern.cpp
+::::::::::::::
+#include<iostream>
+#include<vector>
+#include <unistd.h>
+//behavior pattern 
+
+using namespace std ;
+
+class BaseSubscribe{
+ public :
+  virtual void receivedAlert(){
+        cout<<" BaseSubscribe receivedAlert "<<endl;
+  }
+};
+
+class subscribe1 : public BaseSubscribe {
+ public:
+  void receivedAlert(){
+        cout<<" subscribe1 receivedAlert "<<endl;
+  }
+};
+
+class subscribe2 : public BaseSubscribe {
+ public: 
+  void receivedAlert(){
+        cout<<" subscribe2 receivedAlert "<<endl;
+  }
+};
+
+class publisher{
+ public :
+  publisher(){
+
+  }
+  void setTimer(int time){
+   sleep(time);
+  }
+  void addNotifiers( BaseSubscribe* obj  ){
+   subscribers.push_back(obj);
+  }
+  void BroadCastAlert(){
+   for(int i = 0 ; i < subscribers.size() ; i++)
+        subscribers[i]->receivedAlert();
+  }
+ private :
+   int data ;
+   std::vector<BaseSubscribe*> subscribers ;
+};
+
+int main(){
+        subscribe1 subobj1 ;
+        subscribe2 subobj2 ;
+        publisher *pub = new publisher();
+        BaseSubscribe *bptr1 = new BaseSubscribe() ;
+        bptr1 = &subobj1 ; 
+        BaseSubscribe *bptr2 = new BaseSubscribe() ;
+        bptr2 = &subobj2 ;
+        pub->addNotifiers(bptr1);
+        pub->addNotifiers(bptr2);
+        cout<<"timer starts "<<endl ;
+        pub->setTimer(10);
+        cout<<"timer finished "<<endl;
+        pub->BroadCastAlert();
+        return 0 ;
+}
+::::::::::::::
+op_overload.cc
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+class Date{
+        int dd ;
+        int mm ;
+        public :
+        Date(){
+        }
+        Date(int d,int m): dd(d),mm(m){
+        }
+        void setData(int d,int m){ 
+                dd = d ;
+                mm = m ;
+        }
+        int getDate(){
+                return dd;
+        }
+        Date operator+(const Date &pass){
+                Date adding ;// = new Date();
+                adding.dd = this->dd + pass.dd ;
+                adding.mm = this->mm + pass.mm ;
+                return adding ;
+        }
+        //post--can be void 
+        void operator++(int val){
+                Date add = *this ;
+                ++(this->dd);
+                ++(this->mm);
+        //        ++((*this)->mm);
+                //this->dd = this->dd + 1 ;
+        //        return add ;
+        }
+        //pre-- 
+        Date& operator++(){
+                Date add = *this ;
+                ++(this->dd);
+                ++(this->mm);      
+         //this->dd = this->dd +1 ;// ++(*this);
+           //    this->mm = this->mm +1 ;// ++(*this);
+               return (*this) ;
+        }
+
+/*        Date operator++(const Date &passing){
+
+        }
+*/
+};
+int main()
+{
+ Date d1(20,10) ;
+ Date d2(24,11) ;
+ Date d3 = d1 + d2 ;
+ cout<<d3.getDate()<<endl;
+
+ //pre ++
+ d1++ ;
+ cout<<d1.getDate()<<endl;
+ return 0 ;
+}
+::::::::::::::
+practice.cpp
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+class A{
+ int data ;
+ public :
+ A(){
+ }
+ A(int n) : data(n){}
+ int getData();
+ void setData(int i);
+};
+
+class B : public A {
+  public :
+ // int getData();
+ // void setData(int i);
+ };
+ 
+int A::getData(){
+        return data ;
+}
+
+void A::setData(int k){
+        data = k ;
+}
+
+int main(){
+ A a;
+ A c(40);
+ a.setData(10);
+ cout<<a.getData()<<endl;
+ A *aptr = new B() ;
+ aptr->setData(70); 
+ cout<<aptr->getData()<<endl;
+ cout<<a.getData()<<endl;
+ return 0 ;
+}
+::::::::::::::
+practice_digikstra.cpp
+::::::::::::::
+#include<iostream>
+#include<vector>
+#include<map>
+#include<queue>
+#include <limits>
+
+
+using namespace std ;
+
+int MAX_INT = numeric_limits<int>::max(); 
+ 
+struct vertex; 
+
+typedef pair<int,vertex*> vpair;
+typedef map<string , vertex*> vmap ; // vertex and vertex pointer 
+
+typedef pair<string ,int> min_pair;
+
+typedef priority_queue< min_pair , vector<min_pair> ,greater<min_pair> > min_heap ;
+typedef map<string,int> distance_map ;
+typedef map<string,string> parent_map ;
+
+struct OrderByDistance
+{
+    bool operator() (min_pair const &a, min_pair const &b) { return a.second < b.second; }
+};
+
+struct vertex {
+        vector<vpair> adj ; // weigh and destination vertex 
+        string s ;
+        vertex(string s1) : s(s1){}
+};
+
+class graph {
+        bool isDirected ; 
+        public :
+        graph(bool isDirectedParam) : isDirected(isDirectedParam){}
+        vmap work ;
+        void addVertex(string &addV);
+        void addEdge(string &src , string &des , int cost);
+        vmap getAllVertex()
+        { return work ; 
+        }
+        vector<vpair> getAdjecent(string getAdj);
+        distance_map shortest_path(string &src);
+} ;
+
+vector<vpair> graph::getAdjecent(string getAdj){
+        vmap::iterator it = work.find(getAdj);
+        if(it != work.end()){
+                vertex *v = it->second ;
+                return v->adj ;
+        }
+        else{
+                cout<<"not found "<<endl ;
+        }
+}
+
+distance_map graph::shortest_path(string &src){
+
+        //typedef pair<int,vertex*> vpair;
+        //typedef map<string , vertex*> vmap ; // vertex and vertex pointer
+
+        //typedef pair<string ,int> min_pair;
+        //typedef priority_queue< min_pair , vector<min_pair> ,greater<min_pair> > min_heap ;
+         //typedef map<string,int> distance_map ;
+         //typedef map<string,string> parent_map ;
+
+        distance_map dis_map ;
+        parent_map par_map ;
+        min_heap heap ;
+        // initialised 
+        for(auto h : this->getAllVertex())
+                heap.push(make_pair(h.first,MAX_INT-1)) ;
+        vertex *src1 ;
+        //Fill infinity in min_heap map
+        vmap::iterator it = work.find(src);
+        if(it != work.end())
+                vertex *src1 = it->second ;
+
+//        heap.push(make_pair(src1->s,0)) ;
+        
+        //dis_map.insert(pair<string,int >(src1->s,0));
+        
+        //iiiipar_map.insert(pair<string,string >(src1->s,NULL));
+
+        while(!heap.empty()){
+                //Ruiing for heap 
+                min_pair min = heap.top() ; // extract min 
+
+                heap.pop(); // remove it from the heap 
+
+        //        dis_map.insert(pair<string,int >(min.first,min.second));
+                
+        //        for(auto adMin : this->getAdjecent(min.first)){ //cout<<"cost "<<ad.first <<"  vertex "<<(ad.second)->s <<endl ;
+        //                cout<<"cost "<<adMin.first <<"  vertex "<<(adMin.second)->s <<endl ;
+        //        }
+                
+        }
+}
+void graph::addVertex(string &addV){
+        vmap::iterator it = work.find(addV);
+        if(it == work.end()){
+                vertex *newv = new vertex(addV) ;
+                work[addV] = newv;
+                return ;
+        }
+        cout<<"Already exists"<<endl;
+}
+
+void graph::addEdge(string &src , string &des , int cost){
+        vmap::iterator it = work.find(src);
+        vmap::iterator it1 = work.find(des);
+        if(it != work.end() && it1 != work.end()){
+                vertex *v = it->second;
+                vertex *v1 = it1->second;
+                (v->adj).push_back(make_pair(cost,v1));
+                if(!isDirected){
+                        (v1->adj).push_back(make_pair(cost,v));
+                }
+         }
+        else{
+                cout<<"not exist..!!!!!!"<<endl ;
+        }
+}
+
+int main(){
+ graph g(false) ;
+ string v1 = "A"; string v2 = "B"; string v3 = "C"; string v4 = "D"; string v5 = "E"; string v6 = "F";  string v7 = "G"; 
+
+ g.addVertex(v1); g.addVertex(v2); g.addVertex(v3); g.addVertex(v4); g.addVertex(v5); g.addVertex(v6); g.addVertex(v7);
+
+ g.addEdge(v1,v3,1);  g.addEdge(v1,v7,3);  g.addEdge(v1,v2,1);  g.addEdge(v2,v5,5);  g.addEdge(v3,v4,2);  g.addEdge(v4,v5,4); 
+ g.addEdge(v4,v6,6);  g.addEdge(v5,v6,2);  g.addEdge(v5,v7,6); 
+
+ for(auto ad : g.getAdjecent(v1))
+        cout<<"cost "<<ad.first <<"  vertex "<<(ad.second)->s <<endl ;  
+
+ cout<<MAX_INT ; 
+ cout<<"shortest path "<<endl;
+ g.shortest_path(v1);
+
+ return 0 ;
+
+}
+::::::::::::::
+practice_priority_quueu.cpp
+::::::::::::::
+#include<iostream>
+#include<queue>
+#include<vector>
+
+using namespace std ;
+
+template<typename T> void print_queue(T &max_heap){
+        while(!max_heap.empty()){
+                cout<<max_heap.top()<<endl ;
+                max_heap.pop();
+        }
+}
+
+int main(){
+ priority_queue<int,vector<int> > max_heap ;
+ max_heap.push(10);
+ max_heap.push(1);
+ max_heap.push(11);
+ max_heap.push(9);
+ max_heap.push(5);
+ max_heap.push(4);
+ max_heap.push(20);
+ max_heap.push(30);
+ max_heap.push(40);
+ max_heap.push(50);
+
+ cout<<"Printing max heap "<<endl ;
+ print_queue(max_heap);
+
+
+ priority_queue<int,vector<int>, greater<int> > min_heap ;
+
+ min_heap.push(10);
+ min_heap.push(1);
+ min_heap.push(11);
+ min_heap.push(9);
+ min_heap.push(5);
+ min_heap.push(4);
+ min_heap.push(20);
+ min_heap.push(30);
+ min_heap.push(40);
+ min_heap.push(50);
+
+ 
+ cout<<"Printing min heap "<<endl ;
+ print_queue(min_heap);
+
+ return 0 ;
+
+}
+::::::::::::::
+private_inheritance.cc
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+class Base{
+        int dPrivate ;
+        protected :
+        int dProtected ;
+        public :
+        int dPublic ;
+ 
+};
+class Derived : private Base {
+        public :
+        void setValues(int v){
+        dProtected = v ;
+//        dPrivate = v ; // Cant access it because it is private 
+        dPublic = v ;
+        }
+        void getValues1(){
+        cout<<"print in Derived "<<dProtected <<endl ;
+        cout<<"print in Derived "<<dPublic<<endl ;
+        //cout<<"print in Derived "<<dPrivate<<endl ;// private in base 
+        }
+         
+};
+
+class Derived2 : public Derived{
+        public :
+/*        void getValues(){
+        cout<<"print in Derived2 "<<dProtected <<endl ; 
+        cout<<"print in Derived2 "<<dPublic<<endl ; 
+        cout<<"print in Derived2 "<<dPrivate<<endl ; 
+        }
+*/
+};
+int main(){
+ Derived2 d ;
+ d.setValues(57);
+// d.getValues();
+ d.getValues1();
+ return 0;
+}
+::::::::::::::
+protected_inheritance.cc
+::::::::::::::
+#include<iostream>
+
+using namespace std ;
+
+class Base{
+ private :
+ int dPrivate ;
+ protected :
+ int dProtected ;
+ public :
+ int dPublic ;
+};
+
+class Derived : protected Base{
+ public :
+ void setValue(int val){
+/*
+        protected and public members of base is protected in derived 
+*/
+//         dPrivate = val ;
+         dProtected = val ;
+         dPublic = val ;
+ }
+};
+
+class Derived2 : public Derived{
+/*
+        Accessing the near base class and top base class variables/methods which are public/protected respectively 
+*/
+ public :
+      void print_val(){
+        cout<<"printing in Derived2 "<<dProtected<<endl ;
+        }
+};
+int main()
+{
+ Derived d ;
+ d.setValue(10);
+ Derived2 d2 ;
+ d2.setValue(25);
+ d2.print_val() ;
+ return 0 ;
+}
+
+
+ #include <iostream>
+#include <string.h>
+
+using namespace std;
+
+char *copy_string(const char* src , char* dest){
+        int len = strlen(src);
+        cout<<"len--"<<len<<endl;
+        dest = new char[len]();
+        char *loop = dest ;
+        if(src){
+                while(*src){
+                        *loop = *src ;
+                        loop++ ;
+                        src++;
+                }
+        }
+        cout<<"in copy_string "<<dest <<endl ;
+        return dest ;
+}
+int main() {
+        // your code goes here
+        const char *source = "ABCD";
+        char *dest ;
+        cout<<endl;
+        cout<<copy_string(source,dest);
+        return 0;
+}
